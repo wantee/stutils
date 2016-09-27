@@ -31,7 +31,7 @@ gen-doc: prepare-doc
 prepare-doc:
 	mkdir -p html
 	if [ ! -d html/.git ]; then \
-      git clone git@github.com:wantee/$(PROJECT).git html; \
+      git clone `git remote -v | grep origin | grep fetch | awk '{print $$2}'` html; \
     fi
 	cd html && \
     git checkout gh-pages
@@ -43,7 +43,7 @@ publish-doc: gen-doc
 	git push origin gh-pages
 
 lint-check : *.h *.cpp *.c
-	splint +posixlib +D__gnuc_va_list=int -fileextensions $^ 
+	splint +posixlib +D__gnuc_va_list=int -fileextensions $^
 
 clean-static:
 	rm -rf $(REPLACE_REVISION)
