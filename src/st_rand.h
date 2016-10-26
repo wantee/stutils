@@ -62,6 +62,16 @@ void st_gauss_r_init(st_gauss_r_t *gauss, double mean,
         double stdev, unsigned seed);
 double st_gaussrand_r(st_gauss_r_t *gauss);
 
+/**
+ * Outputs random values from a truncated normal distribution.
+ *
+ * The generated values follow a normal distribution with specified
+ * mean and standard deviation, except that values whose magnitude is
+ * more than boundary*stddev from the mean are dropped and re-picked.
+ * normally boundary could be set to 2.0.
+ */
+double st_trunc_normrand(double mean, double stdev, double boundary);
+
 #ifdef __cplusplus
 }
 #endif

@@ -165,3 +165,14 @@ double st_gaussrand_r(st_gauss_r_t *gauss)
 
     return ((gauss->stdev * X) + gauss->mean);
 }
+
+double st_trunc_normrand(double mean, double stdev, double boundary)
+{
+    double x;
+
+    do {
+        x = st_normrand(mean, stdev);
+    } while (fabs(x - mean) > boundary * stdev);
+
+    return x;
+}
