@@ -1,18 +1,18 @@
 /*
  * The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Wang Jian
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,12 +33,12 @@ extern "C" {
 
 #define ST_QUEUE_OK    0
 #define ST_QUEUE_ERR   -1
-#define ST_QUEUE_FULL  1 
+#define ST_QUEUE_FULL  1
 #define ST_QUEUE_EMPTY 2
 
 typedef unsigned int st_queue_id_t;
 
-typedef struct _st_st_queue_t_
+typedef struct _st_queue_t_
 {
     st_queue_id_t capacity;
     st_queue_id_t start_idx;
@@ -53,6 +53,8 @@ int st_enqueue(st_queue_t* queue, void* obj);
 int st_dequeue(st_queue_t* queue, void** obj);
 
 int st_queue_empty(st_queue_t* queue);
+
+st_queue_id_t st_queue_capacity(st_queue_t* queue);
 
 st_queue_id_t st_queue_size(st_queue_t* queue);
 

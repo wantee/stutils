@@ -43,13 +43,15 @@ TESTS = tests/st-utils-test \
         tests/st-conf-test \
         tests/st-int-test \
         tests/st-string-test \
-        tests/st-mem-test
+        tests/st-mem-test \
+        tests/st-queue-test
 
 VAL_TESTS = tests/st-utils-test \
             tests/st-conf-test \
             tests/st-int-test \
             tests/st-string-test \
-            tests/st-mem-test
+            tests/st-mem-test \
+            tests/st-queue-test
 
 .PHONY: all
 all:
