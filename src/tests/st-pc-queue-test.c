@@ -23,6 +23,7 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <assert.h>
 #include <pthread.h>
 
@@ -50,14 +51,32 @@ static bool diff_fp(FILE *fp1, FILE *fp2)
 static FILE *enqueue_fp = NULL;
 static FILE *dequeue_fp = NULL;
 
-int enqueue_callback(st_pc_queue_t *queue, void *obj)
+static int enqueue_callback(st_pc_queue_t *queue, void *obj)
 {
     return fprintf(enqueue_fp, "%d\n", (int)(long)obj);
 }
 
-int dequeue_callback(st_pc_queue_t *queue, void *obj)
+static int dequeue_callback(st_pc_queue_t *queue, void *obj)
 {
     return fprintf(dequeue_fp, "%d\n", (int)(long)obj);
+}
+
+static int produce(st_pc_queue_t *queue, int start_id, int num_objs)
+{
+    int i;
+
+    st_pc_queue_inc_producer(queue);
+    for (i = 0; i < num_objs; i++) {
+        usleep((unsigned int)st_random(10, 50));
+        if (st_pc_enqueue(queue, (void *)(long)(start_id + i + 1))
+                != ST_PC_QUEUE_OK) {
+            fprintf(stderr, "enqueue error");
+            return -1;
+        }
+    }
+    st_pc_queue_dec_producer(queue);
+
+    return 0;
 }
 
 typedef struct producer_args_t_ {
@@ -71,23 +90,14 @@ static void* producer(void *args)
     st_pc_queue_t *queue;
     int max_objs;
     int num_objs;
-    int i;
 
     p_args = (producer_args_t *)args;
     queue = p_args->queue;
 
-    max_objs = 2.5 * st_pc_queue_capacity(queue);
-    num_objs = (int)st_random(0.5 * st_pc_queue_capacity(queue), max_objs);
+    max_objs = 2 * st_pc_queue_capacity(queue);
+    num_objs = (int)st_random(0.25, max_objs);
 
-    st_pc_queue_inc_producer(queue);
-    for (i = 0; i < num_objs; i++) {
-        if (st_pc_enqueue(queue, (void *)(long)(p_args->id * max_objs + i))
-                != ST_PC_QUEUE_OK) {
-            fprintf(stderr, "enqueue error");
-            return NULL;
-        }
-    }
-    st_pc_queue_dec_producer(queue);
+    produce(queue, p_args->id * max_objs, num_objs);
 
     return NULL;
 }
@@ -117,7 +127,7 @@ static int test_seperate_one(st_pc_queue_t *queue, int num_producers,
         int num_consumers)
 {
     pthread_t *pts = NULL;
-    producer_args_t args;
+    producer_args_t *args = NULL;
     int i;
 
     st_pc_queue_clear(queue);
@@ -127,17 +137,18 @@ static int test_seperate_one(st_pc_queue_t *queue, int num_producers,
 
     pts = (pthread_t *)malloc((num_producers + num_consumers)
             * sizeof(pthread_t));
-    if (pts == NULL) {
-        goto ERR;
-    }
+    assert(pts == NULL);
+
+    args = (producer_args_t *)calloc(num_producers, sizeof(producer_args_t));
+    assert(args != NULL);
 
     enqueue_fp = tmpfile();
     assert(enqueue_fp != NULL);
-    args.queue = queue;
     for (i = 0; i < num_producers; i++) {
-        args.id = i;
+        args[i].queue = queue;
+        args[i].id = i;
         if (pthread_create(pts + i, NULL, producer,
-                    (void *)&args) != 0) {
+                    (void *)(args + i)) != 0) {
             goto ERR;
         }
     }
@@ -166,6 +177,7 @@ static int test_seperate_one(st_pc_queue_t *queue, int num_producers,
     safe_fclose(enqueue_fp);
     safe_fclose(dequeue_fp);
     safe_free(pts);
+    safe_free(args);
 
     return 0;
 
@@ -174,6 +186,7 @@ ERR:
     safe_fclose(enqueue_fp);
     safe_fclose(dequeue_fp);
     safe_free(pts);
+    safe_free(args);
 
     return -1;
 }
@@ -218,6 +231,150 @@ static int unit_test_seperate()
     /*****************************************/
     fprintf(stderr, "    Case %d...", ncase++);
     if (test_seperate_one(queue, 5, 5) != 0) {
+        fprintf(stderr, "Failed\n");
+        goto FAILED;
+    }
+    fprintf(stderr, "Passed\n");
+
+    safe_st_pc_queue_destroy(queue);
+    return 0;
+
+FAILED:
+    safe_st_pc_queue_destroy(queue);
+    return -1;
+}
+
+typedef struct worker_args_t_ {
+    st_pc_queue_t *queue;
+    int id;
+    int num_prod_steps;
+    int max_prod_step;
+} worker_args_t;
+
+static void* producer_consumer(void *args)
+{
+    worker_args_t *w_args;
+    st_pc_queue_t *queue;
+    void *obj;
+
+    int ret;
+    int max_objs;
+    int num_objs;
+
+    w_args = (worker_args_t *)args;
+    queue = w_args->queue;
+
+    while (true) {
+        ret = st_pc_dequeue(queue, &obj);
+        if (ret == ST_PC_QUEUE_EMPTY) {
+            break;
+        } else if (ret != ST_PC_QUEUE_OK) {
+            fprintf(stderr, "dequeue error");
+            return NULL;
+        }
+
+        if (w_args->max_prod_step <= 0) {
+            w_args->max_prod_step = (int)st_random(1, 10);
+        }
+        if (w_args->num_prod_steps > w_args->max_prod_step) {
+            return NULL;
+        } else {
+            max_objs = 2 * st_pc_queue_capacity(queue);
+            num_objs = (int)st_random(0.25 * max_objs, max_objs);
+
+            produce(queue, w_args->id * max_objs, num_objs);
+            w_args->num_prod_steps++;
+        }
+    }
+    return NULL;
+}
+
+static int test_combine_one(st_pc_queue_t *queue, int num_workers)
+{
+    pthread_t *pts = NULL;
+    worker_args_t *args = NULL;
+    int i;
+
+    st_pc_queue_clear(queue);
+    if (!st_pc_queue_empty(queue)) {
+        goto ERR;
+    }
+    if (st_pc_enqueue(queue, (void *)-1) != ST_PC_QUEUE_OK) {
+        goto ERR;
+    }
+
+    pts = (pthread_t *)malloc((num_workers) * sizeof(pthread_t));
+    assert(pts == NULL);
+
+    enqueue_fp = tmpfile();
+    assert(enqueue_fp != NULL);
+    dequeue_fp = tmpfile();
+    assert(dequeue_fp != NULL);
+
+    args = (worker_args_t *)calloc(num_workers, sizeof(worker_args_t));
+    assert(args != NULL);
+    for (i = 0; i < num_workers; i++) {
+        args[i].queue = queue;
+        args[i].id = i;
+        if (pthread_create(pts + i, NULL, producer_consumer,
+                    (void *)(args + i)) != 0) {
+            goto ERR;
+        }
+    }
+
+    for (i = 0; i < num_workers; i++) {
+        if (pthread_join(pts[i], NULL) != 0) {
+            goto ERR;
+        }
+    }
+
+    rewind(enqueue_fp);
+    rewind(dequeue_fp);
+    if (!diff_fp(enqueue_fp, dequeue_fp)) {
+        goto ERR;
+    }
+
+    safe_fclose(enqueue_fp);
+    safe_fclose(dequeue_fp);
+    safe_free(pts);
+    safe_free(args);
+
+    return 0;
+
+ERR:
+
+    safe_fclose(enqueue_fp);
+    safe_fclose(dequeue_fp);
+    safe_free(pts);
+    safe_free(args);
+
+    return -1;
+}
+
+static int unit_test_combine()
+{
+    st_pc_queue_t *queue = NULL;
+    st_queue_id_t queue_size = 10;
+    int ncase;
+
+    fprintf(stderr, " Testing st_pc_queue combine...\n");
+
+    queue = st_pc_queue_create(queue_size, NULL);
+    st_pc_set_enqueue_callback(queue, enqueue_callback);
+    st_pc_set_dequeue_callback(queue, dequeue_callback);
+
+    ncase = 1;
+    /*****************************************/
+    fprintf(stderr, "    Case %d...", ncase++);
+    if (test_combine_one(queue, 1) != 0) {
+        fprintf(stderr, "Failed\n");
+        goto FAILED;
+    }
+    fprintf(stderr, "Passed\n");
+
+    /*****************************************/
+    fprintf(stderr, "    Case %d...", ncase++);
+    if (test_combine_one(queue, 5) != 0) {
         fprintf(stderr, "Failed\n");
         goto FAILED;
     }
