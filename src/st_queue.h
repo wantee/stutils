@@ -52,7 +52,7 @@ int st_enqueue(st_queue_t* queue, void* obj);
 
 int st_dequeue(st_queue_t* queue, void** obj);
 
-int st_queue_empty(st_queue_t* queue);
+bool st_queue_empty(st_queue_t* queue);
 
 st_queue_id_t st_queue_capacity(st_queue_t* queue);
 
