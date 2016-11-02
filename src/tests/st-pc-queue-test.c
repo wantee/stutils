@@ -27,29 +27,49 @@
 #include <assert.h>
 #include <pthread.h>
 
+#include "st_log.h"
 #include "st_rand.h"
 
 #include "st_pc_queue.h"
 
-static bool diff_fp(FILE *fp1, FILE *fp2)
+static bool diff_fp(FILE *enqueue_fp, FILE *dequeue_fp)
 {
     int a;
     int b;
 
-    do {
-        a = fgetc(fp1);
-        b = fgetc(fp2);
+    while (true) {
+        a = fgetc(enqueue_fp);
+        b = fgetc(dequeue_fp);
+
+        if (b == EOF) {
+            break;
+        }
 
         if (a != b) {
             return false;
         }
-    } while (a != EOF);
+    }
+
+    // enqueue_fp must have a extra EOF_obj
+    if (a != '0') {
+        return false;
+    }
+    if (fgetc(enqueue_fp) != '\n') {
+        return false;
+    }
+    if (fgetc(enqueue_fp) != EOF) {
+        return false;
+    }
 
     return true;
 }
 
 static FILE *enqueue_fp = NULL;
 static FILE *dequeue_fp = NULL;
+
+#ifdef _PC_QUEUE_TEST_DEBUG_
+static int ncase = 0;
+#endif
 
 static int enqueue_callback(st_pc_queue_t *queue, void *obj)
 {
@@ -67,7 +87,7 @@ static int produce(st_pc_queue_t *queue, int start_id, int num_objs)
 
     st_pc_queue_inc_producer(queue);
     for (i = 0; i < num_objs; i++) {
-        usleep((unsigned int)st_random(10, 50));
+        usleep((unsigned int)st_random(0, 10));
         if (st_pc_enqueue(queue, (void *)(long)(start_id + i + 1))
                 != ST_PC_QUEUE_OK) {
             fprintf(stderr, "enqueue error");
@@ -95,7 +115,7 @@ static void* producer(void *args)
     queue = p_args->queue;
 
     max_objs = 2 * st_pc_queue_capacity(queue);
-    num_objs = (int)st_random(0.25, max_objs);
+    num_objs = (int)st_random(0.25 * max_objs, max_objs);
 
     produce(queue, p_args->id * max_objs, num_objs);
 
@@ -137,13 +157,28 @@ static int test_seperate_one(st_pc_queue_t *queue, int num_producers,
 
     pts = (pthread_t *)malloc((num_producers + num_consumers)
             * sizeof(pthread_t));
-    assert(pts == NULL);
+    assert(pts != NULL);
 
     args = (producer_args_t *)calloc(num_producers, sizeof(producer_args_t));
     assert(args != NULL);
 
+#ifdef _PC_QUEUE_TEST_DEBUG_
+    {
+        char file[128];
+        snprintf(file, 128, "en-%d.txt", ncase);
+        enqueue_fp = fopen(file, "w+");
+        snprintf(file, 128, "de-%d.txt", ncase);
+        dequeue_fp = fopen(file, "w+");
+        ncase++;
+    }
+#else
     enqueue_fp = tmpfile();
+    dequeue_fp = tmpfile();
+#endif
     assert(enqueue_fp != NULL);
+    setlinebuf(enqueue_fp);
+    assert(dequeue_fp != NULL);
+    setlinebuf(dequeue_fp);
     for (i = 0; i < num_producers; i++) {
         args[i].queue = queue;
         args[i].id = i;
@@ -153,11 +188,9 @@ static int test_seperate_one(st_pc_queue_t *queue, int num_producers,
         }
     }
 
-    dequeue_fp = tmpfile();
-    assert(dequeue_fp != NULL);
     for (i = 0; i < num_consumers; i++) {
         if (pthread_create(pts + num_producers + i, NULL, consumer,
-                    NULL) != 0) {
+                    (void *)queue) != 0) {
             goto ERR;
         }
     }
@@ -276,16 +309,17 @@ static void* producer_consumer(void *args)
         if (w_args->max_prod_step <= 0) {
             w_args->max_prod_step = (int)st_random(1, 10);
         }
-        if (w_args->num_prod_steps > w_args->max_prod_step) {
-            return NULL;
+        if (w_args->num_prod_steps >= w_args->max_prod_step) {
+            continue;
         } else {
-            max_objs = 2 * st_pc_queue_capacity(queue);
-            num_objs = (int)st_random(0.25 * max_objs, max_objs);
+            max_objs = 1;
+            num_objs = 1;
 
             produce(queue, w_args->id * max_objs, num_objs);
             w_args->num_prod_steps++;
         }
     }
+
     return NULL;
 }
 
@@ -299,17 +333,30 @@ static int test_combine_one(st_pc_queue_t *queue, int num_workers)
     if (!st_pc_queue_empty(queue)) {
         goto ERR;
     }
+    pts = (pthread_t *)malloc((num_workers) * sizeof(pthread_t));
+    assert(pts != NULL);
+
+#ifdef _PC_QUEUE_TEST_DEBUG_
+    {
+        char file[128];
+        snprintf(file, 128, "en-%d.txt", ncase);
+        enqueue_fp = fopen(file, "w+");
+        snprintf(file, 128, "de-%d.txt", ncase);
+        dequeue_fp = fopen(file, "w+");
+        ncase++;
+    }
+#else
+    enqueue_fp = tmpfile();
+    dequeue_fp = tmpfile();
+#endif
+    assert(enqueue_fp != NULL);
+    assert(dequeue_fp != NULL);
+    setlinebuf(enqueue_fp);
+    setlinebuf(dequeue_fp);
+
     if (st_pc_enqueue(queue, (void *)-1) != ST_PC_QUEUE_OK) {
         goto ERR;
     }
-
-    pts = (pthread_t *)malloc((num_workers) * sizeof(pthread_t));
-    assert(pts == NULL);
-
-    enqueue_fp = tmpfile();
-    assert(enqueue_fp != NULL);
-    dequeue_fp = tmpfile();
-    assert(dequeue_fp != NULL);
 
     args = (worker_args_t *)calloc(num_workers, sizeof(worker_args_t));
     assert(args != NULL);
@@ -405,9 +452,15 @@ static int run_all_tests()
 
 int main(int argc, const char *argv[])
 {
+    st_log_opt_t log_opt = {
+        .file = "/dev/stderr",
+        .level = 8,
+    };
     int ret;
 
     st_srand(time(NULL));
+
+    st_log_open_mt(&log_opt);
 
     fprintf(stderr, "Start testing...\n");
     ret = run_all_tests();
