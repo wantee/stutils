@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+#include <string>
+
 #include "st_utils.h"
 #include "st_log.h"
 #include "st_queue.h"
@@ -36,6 +38,7 @@ st_queue_t* st_queue_create(st_queue_id_t capacity)
         ST_WARNING("alloc memory for queue failed");
         return NULL;
     }
+    memset(queue, 0, sizeof(st_queue_t));
 
     queue->capacity = capacity + 1;
     queue->start_idx = 0;
@@ -56,9 +59,7 @@ FAILED:
 
 int st_enqueue(st_queue_t* queue, void* obj)
 {
-    if(((queue->end_idx + 2) % queue->capacity) == queue->start_idx)
-    {
-        ST_WARNING("queue overflow");
+    if(((queue->end_idx + 2) % queue->capacity) == queue->start_idx) {
         return ST_QUEUE_FULL;
     }
     queue->end_idx = ((queue->end_idx + 1) % queue->capacity);
@@ -69,9 +70,7 @@ int st_enqueue(st_queue_t* queue, void* obj)
 
 int st_dequeue(st_queue_t* queue, void** obj)
 {
-    if(((queue->end_idx + 1) % queue->capacity) == queue->start_idx)
-    {
-        ST_WARNING("queue empty.");
+    if(((queue->end_idx + 1) % queue->capacity) == queue->start_idx) {
         return ST_QUEUE_EMPTY;
     }
     *obj = queue->data_arr[queue->start_idx];
@@ -80,13 +79,12 @@ int st_dequeue(st_queue_t* queue, void** obj)
     return ST_QUEUE_OK;
 }
 
-int st_queue_empty(st_queue_t* queue)
+bool st_queue_empty(st_queue_t* queue)
 {
-    if(((queue->end_idx + 1) % queue->capacity) == queue->start_idx)
-    {
-        return ST_QUEUE_EMPTY;
+    if(((queue->end_idx + 1) % queue->capacity) == queue->start_idx) {
+        return true;
     }
-    return ST_QUEUE_OK;
+    return false;
 }
 
 st_queue_id_t st_queue_size(st_queue_t* queue)
