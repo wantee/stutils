@@ -57,7 +57,12 @@ void st_srand(unsigned int seed)
 
 double st_random(double min, double max)
 {
-    return st_rand() / (double) ST_RAND_MAX *(max - min) + min;
+    return st_random_r(min, max, &st_rand_state);
+}
+
+double st_random_r(double min, double max, unsigned int *seed)
+{
+    return st_rand_r(seed) / (double) ST_RAND_MAX *(max - min) + min;
 }
 
 void st_shuffle(int *a, size_t n)

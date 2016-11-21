@@ -39,6 +39,7 @@ extern "C" {
 int st_rand();
 double st_random(double min, double max);
 int st_rand_r(unsigned int *seed);
+double st_random_r(double min, double max, unsigned int *seed);
 void st_srand(unsigned int seed);
 
 void st_shuffle(int *a, size_t n);
