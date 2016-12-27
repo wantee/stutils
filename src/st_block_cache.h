@@ -29,6 +29,8 @@
 extern "C" {
 #endif
 
+#include <pthread.h>
+
 #include <stutils/st_macro.h>
 
 /** @defgroup g_block_cache Block Memory Cache
@@ -51,6 +53,8 @@ typedef struct _st_block_cache_t_
 
     int *free_blocks; /**< record the ids of free block. */
     int num_free_blocks; /**< number of free blocks. */
+
+    pthread_mutex_t lock; /**< mutex. */
 } st_block_cache_t;
 
 /**

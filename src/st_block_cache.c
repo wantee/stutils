@@ -69,6 +69,11 @@ st_block_cache_t* st_block_cache_create(int block_size, int init_count,
     }
     bcache->num_free_blocks = init_count;
 
+    if (pthread_mutex_init(&bcache->lock, NULL) != 0) {
+        ST_WARNING("Failed to pthread_mutex_init lock.");
+        goto ERR;
+    }
+
     return bcache;
 ERR:
     safe_st_block_cache_destroy(bcache);
@@ -90,6 +95,8 @@ void st_block_cache_destroy(st_block_cache_t* bcache)
 
     safe_free(bcache->free_blocks);
     bcache->num_free_blocks = 0;
+
+    (void)pthread_mutex_destroy(&bcache->lock);
 }
 
 int st_block_cache_capacity(st_block_cache_t* bcache)
@@ -116,6 +123,7 @@ int st_block_cache_clear(st_block_cache_t* bcache)
     return 0;
 }
 
+// should hold the lock outside this function
 static int st_bcache_get_free_block(st_block_cache_t *bcache)
 {
     int i;
@@ -158,6 +166,7 @@ static int st_bcache_get_free_block(st_block_cache_t *bcache)
     return bcache->free_blocks[--bcache->num_free_blocks];
 }
 
+// should hold the lock outside this function
 static int st_bcache_return_block(st_block_cache_t *bcache, int block_id)
 {
     bcache->free_blocks[bcache->num_free_blocks++] = block_id;
@@ -167,20 +176,40 @@ static int st_bcache_return_block(st_block_cache_t *bcache, int block_id)
 
 void* st_block_cache_fetch(st_block_cache_t* bcache, int *block_id)
 {
+    void *ret;
+
     ST_CHECK_PARAM(bcache == NULL || block_id == NULL
             || *block_id >= bcache->capacity, NULL);
+
+    if (pthread_mutex_lock(&bcache->lock) != 0) {
+        ST_WARNING("Failed to pthread_mutex_lock lock.");
+        return NULL;
+    }
 
     if (*block_id < 0) {
         *block_id = st_bcache_get_free_block(bcache);
         if (*block_id < 0) {
             ST_WARNING("Failed to st_bcache_get_free_block.");
-            return NULL;
+            goto ERR;
         }
     }
 
     bcache->ref_counts[*block_id]++;
 
-    return bcache->data + (bcache->block_size * (*block_id));
+    ret = bcache->data + (bcache->block_size * (*block_id));
+    if (pthread_mutex_unlock(&bcache->lock) != 0) {
+        ST_WARNING("Failed to pthread_mutex_unlock lock.");
+        return NULL;
+    }
+
+    return ret;
+
+ERR:
+    if (pthread_mutex_unlock(&bcache->lock) != 0) {
+        ST_WARNING("Failed to pthread_mutex_unlock lock.");
+        return NULL;
+    }
+    return NULL;
 }
 
 int st_block_cache_return(st_block_cache_t* bcache, int block_id)
@@ -188,9 +217,14 @@ int st_block_cache_return(st_block_cache_t* bcache, int block_id)
     ST_CHECK_PARAM(bcache == NULL || block_id < 0
             || block_id >= bcache->capacity, -1);
 
+    if (pthread_mutex_lock(&bcache->lock) != 0) {
+        ST_WARNING("Failed to pthread_mutex_lock lock.");
+        return -1;
+    }
+
     if (bcache->ref_counts[block_id] <= 0) {
         ST_WARNING("block[%d] double returned.", block_id);
-        return -1;
+        goto ERR;
     }
 
     bcache->ref_counts[block_id]--;
@@ -198,11 +232,23 @@ int st_block_cache_return(st_block_cache_t* bcache, int block_id)
     if (bcache->ref_counts[block_id] <= 0) {
         if (st_bcache_return_block(bcache, block_id) < 0) {
             ST_WARNING("Failed to st_bcache_return_block.");
-            return -1;
+            goto ERR;
         }
     }
 
+    if (pthread_mutex_unlock(&bcache->lock) != 0) {
+        ST_WARNING("Failed to pthread_mutex_unlock lock.");
+        return -1;
+    }
+
     return 0;
+
+ERR:
+    if (pthread_mutex_unlock(&bcache->lock) != 0) {
+        ST_WARNING("Failed to pthread_mutex_unlock lock.");
+        return -1;
+    }
+    return -1;
 }
 
 void* st_block_cache_read(st_block_cache_t* bcache, int block_id)
