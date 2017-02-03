@@ -27,11 +27,11 @@
 #include "st_log.h"
 #include "st_block_cache.h"
 
-st_block_cache_t* st_block_cache_create(int block_size, int init_count,
-        int realloc_count)
+st_block_cache_t* st_block_cache_create(size_t block_size,
+        bcache_id_t init_count, bcache_id_t realloc_count)
 {
     st_block_cache_t *bcache = NULL;
-    int i;
+    bcache_id_t i;
 
     ST_CHECK_PARAM(block_size <= 0 || init_count <= 0, NULL);
 
@@ -52,14 +52,14 @@ st_block_cache_t* st_block_cache_create(int block_size, int init_count,
         goto ERR;
     }
 
-    bcache->ref_counts = (int *)malloc(sizeof(int) * init_count);
+    bcache->ref_counts = (bcache_id_t *)malloc(sizeof(bcache_id_t) * init_count);
     if (bcache->ref_counts == NULL) {
         ST_WARNING("Failed to malloc ref_counts.");
         goto ERR;
     }
-    memset(bcache->ref_counts, 0, sizeof(int) * init_count);
+    memset(bcache->ref_counts, 0, sizeof(bcache_id_t) * init_count);
 
-    bcache->free_blocks = (int *)malloc(sizeof(int) * init_count);
+    bcache->free_blocks = (bcache_id_t *)malloc(sizeof(bcache_id_t) * init_count);
     if (bcache->free_blocks == NULL) {
         ST_WARNING("Failed to realloc free_blocks.");
         goto ERR;
@@ -99,21 +99,21 @@ void st_block_cache_destroy(st_block_cache_t* bcache)
     (void)pthread_mutex_destroy(&bcache->lock);
 }
 
-int st_block_cache_capacity(st_block_cache_t* bcache)
+bcache_id_t st_block_cache_capacity(st_block_cache_t* bcache)
 {
     return bcache->capacity;
 }
 
-int st_block_cache_size(st_block_cache_t* bcache)
+bcache_id_t st_block_cache_size(st_block_cache_t* bcache)
 {
     return bcache->capacity - bcache->num_free_blocks;
 }
 
 int st_block_cache_clear(st_block_cache_t* bcache)
 {
-    int i;
+    bcache_id_t i;
 
-    memset(bcache->ref_counts, 0, sizeof(int) * bcache->capacity);
+    memset(bcache->ref_counts, 0, sizeof(bcache_id_t) * bcache->capacity);
 
     for (i = 0; i < bcache->capacity; i++) {
         bcache->free_blocks[i] = i;
@@ -124,9 +124,9 @@ int st_block_cache_clear(st_block_cache_t* bcache)
 }
 
 // should hold the lock outside this function
-static int st_bcache_get_free_block(st_block_cache_t *bcache)
+static bcache_id_t st_bcache_get_free_block(st_block_cache_t *bcache)
 {
-    int i;
+    bcache_id_t i;
 
     if (bcache->num_free_blocks <= 0) {
         if (bcache->realloc_count <= 0) {
@@ -141,17 +141,17 @@ static int st_bcache_get_free_block(st_block_cache_t *bcache)
             return -1;
         }
 
-        bcache->ref_counts = (int *)realloc(bcache->ref_counts,
-                sizeof(int) * (bcache->capacity + bcache->realloc_count));
+        bcache->ref_counts = (bcache_id_t *)realloc(bcache->ref_counts,
+            sizeof(bcache_id_t) * (bcache->capacity + bcache->realloc_count));
         if (bcache->ref_counts == NULL) {
             ST_WARNING("Failed to realloc ref_counts.");
             return -1;
         }
         memset(bcache->ref_counts + bcache->capacity, 0,
-                sizeof(int) * bcache->realloc_count);
+                sizeof(bcache_id_t) * bcache->realloc_count);
 
-        bcache->free_blocks = (int *)realloc(bcache->free_blocks,
-                sizeof(int) * (bcache->capacity + bcache->realloc_count));
+        bcache->free_blocks = (bcache_id_t *)realloc(bcache->free_blocks,
+            sizeof(bcache_id_t) * (bcache->capacity + bcache->realloc_count));
         if (bcache->free_blocks == NULL) {
             ST_WARNING("Failed to realloc free_blocks.");
             return -1;
@@ -167,14 +167,15 @@ static int st_bcache_get_free_block(st_block_cache_t *bcache)
 }
 
 // should hold the lock outside this function
-static int st_bcache_return_block(st_block_cache_t *bcache, int block_id)
+static int st_bcache_return_block(st_block_cache_t *bcache,
+        bcache_id_t block_id)
 {
     bcache->free_blocks[bcache->num_free_blocks++] = block_id;
 
     return 0;
 }
 
-void* st_block_cache_fetch(st_block_cache_t* bcache, int *block_id)
+void* st_block_cache_fetch(st_block_cache_t* bcache, bcache_id_t *block_id)
 {
     void *ret;
 
@@ -212,7 +213,7 @@ ERR:
     return NULL;
 }
 
-int st_block_cache_return(st_block_cache_t* bcache, int block_id)
+int st_block_cache_return(st_block_cache_t* bcache, bcache_id_t block_id)
 {
     ST_CHECK_PARAM(bcache == NULL || block_id < 0
             || block_id >= bcache->capacity, -1);
@@ -251,7 +252,7 @@ ERR:
     return -1;
 }
 
-void* st_block_cache_read(st_block_cache_t* bcache, int block_id)
+void* st_block_cache_read(st_block_cache_t* bcache, bcache_id_t block_id)
 {
     ST_CHECK_PARAM(bcache == NULL || block_id < 0
             || block_id >= bcache->capacity, NULL);

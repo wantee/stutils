@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 #include <pthread.h>
+#include <stdint.h>
 
 #include <stutils/st_macro.h>
 
@@ -38,6 +39,9 @@ extern "C" {
  * number of blocks can be extended as needed.
  */
 
+// bcache_id_t must be signed type
+#define bcache_id_t int32_t
+
 /**
  * block memory cache
  * @ingroup g_block_cache
@@ -45,14 +49,14 @@ extern "C" {
 typedef struct _st_block_cache_t_
 {
     void *data; /**< data buffer. */
-    int *ref_counts; /**< ref_count for blocks. */
-    int block_size; /**< size of block. */
-    int count; /**< used count of blocks. */
-    int capacity; /**< capacity of blocks. */
-    int realloc_count; /**< realloc count of blocks. */
+    bcache_id_t *ref_counts; /**< ref_count for blocks. */
+    size_t block_size; /**< size of block. */
+    bcache_id_t count; /**< used count of blocks. */
+    bcache_id_t capacity; /**< capacity of blocks. */
+    bcache_id_t realloc_count; /**< realloc count of blocks. */
 
-    int *free_blocks; /**< record the ids of free block. */
-    int num_free_blocks; /**< number of free blocks. */
+    bcache_id_t *free_blocks; /**< record the ids of free block. */
+    bcache_id_t num_free_blocks; /**< number of free blocks. */
 
     pthread_mutex_t lock; /**< mutex. */
 } st_block_cache_t;
@@ -66,8 +70,8 @@ typedef struct _st_block_cache_t_
  *            if non-positive, do not extend.
  * @return block_cache on success, otherwise NULL.
  */
-st_block_cache_t* st_block_cache_create(int block_size, int init_count,
-        int realloc_count);
+st_block_cache_t* st_block_cache_create(size_t block_size,
+        bcache_id_t init_count, bcache_id_t realloc_count);
 
 /**
  * Destroy a block cache and set the pointer to NULL.
@@ -92,17 +96,17 @@ void st_block_cache_destroy(st_block_cache_t* bcache);
  * Get current capacity of block cache
  * @ingroup g_block_cache
  * @param[in] bcache the block cache
- * @return the capacity of block cache, -1 if any error.
+ * @return the capacity of block cache.
  */
-int st_block_cache_capacity(st_block_cache_t* bcache);
+bcache_id_t st_block_cache_capacity(st_block_cache_t* bcache);
 
 /**
  * Get current size of block cache
  * @ingroup g_block_cache
  * @param[in] bcache the block cache
- * @return the size of block cache, -1 if any error.
+ * @return the size of block cache.
  */
-int st_block_cache_size(st_block_cache_t* bcache);
+bcache_id_t st_block_cache_size(st_block_cache_t* bcache);
 
 /**
  * Clear all content of a block cache.
@@ -121,7 +125,7 @@ int st_block_cache_clear(st_block_cache_t* bcache);
  * @param[in, out] block_id id for the block in cache.
  * @return pointer to the fetched block, NULL if any error.
  */
-void* st_block_cache_fetch(st_block_cache_t* bcache, int *block_id);
+void* st_block_cache_fetch(st_block_cache_t* bcache, bcache_id_t *block_id);
 
 /**
  * Return a block to block cache.
@@ -130,7 +134,7 @@ void* st_block_cache_fetch(st_block_cache_t* bcache, int *block_id);
  * @param[in, out] block_id id for the block in cache.
  * @return non-zero if any error.
  */
-int st_block_cache_return(st_block_cache_t* bcache, int block_id);
+int st_block_cache_return(st_block_cache_t* bcache, bcache_id_t block_id);
 
 /**
  * Read a block in block cache.
@@ -139,7 +143,7 @@ int st_block_cache_return(st_block_cache_t* bcache, int block_id);
  * @param[in, out] block_id id for the block in cache.
  * @return pointer to the fetched block, NULL if any error.
  */
-void* st_block_cache_read(st_block_cache_t* bcache, int block_id);
+void* st_block_cache_read(st_block_cache_t* bcache, bcache_id_t block_id);
 
 #ifdef __cplusplus
 }
