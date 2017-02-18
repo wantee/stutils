@@ -52,11 +52,6 @@ void st_qsort(void *const pbase, size_t total_elems, size_t size,
 
 /*
  * Return value for a comparison function
- *
- * @param[in] elem1 first elem.
- * @param[in] elem2 second elem.
- * @param[in] args extra args.
- * @return a st_cmp_ret_t.
  */
 typedef enum st_cmp_ret_t_ {
     ST_CMP_ERR     = -2, /**< error occurs when doing comparison. */
