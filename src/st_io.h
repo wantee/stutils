@@ -49,6 +49,8 @@ int st_readline(FILE *fp, const char *fmt, ...);
 
 off_t st_fsize(const char *filename);
 
+size_t st_count_lines(const char *filename);
+
 #ifdef __cplusplus
 }
 #endif

@@ -189,3 +189,34 @@ off_t st_fsize(const char *filename)
     return -1;
 }
 
+size_t st_count_lines(const char *filename)
+{
+    FILE *fp = NULL;
+    size_t num_lines;
+    int ch;
+
+    fp = st_fopen(filename, "r");
+    if (fp == NULL) {
+        ST_WARNING("Failed to open file[%s]", filename);
+        goto ERR;
+    }
+
+    num_lines = 0;
+    while ((ch = fgetc(fp)) != EOF) {
+        if (ch == '\n') {
+            ++num_lines;
+        }
+    }
+    if (ferror(fp)) {
+        ST_WARNING("Read error for file[%s]", filename);
+        goto ERR;
+    }
+
+    safe_fclose(fp);
+
+    return num_lines;
+
+ERR:
+    safe_fclose(fp);
+    return (size_t)-1;
+}
