@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 #include <stutils/st_macro.h>
+#include "st_mem.h"
 
 #define ST_STACK_OK    0
 #define ST_STACK_ERR   -1
@@ -50,7 +51,7 @@ st_stack_t* st_stack_create(st_stack_id_t capacity);
 #define safe_st_stack_destroy(ptr) do {\
     if((ptr) != NULL) {\
         st_stack_destroy(ptr);\
-        safe_free(ptr);\
+        safe_st_free(ptr);\
         (ptr) = NULL;\
     }\
     } while(0)

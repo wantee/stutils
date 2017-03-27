@@ -1,18 +1,18 @@
 /*
  * The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Wang Jian
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,15 +33,15 @@ st_heap_t* st_heap_create(st_heap_id_t capacity, st_heap_cmp_func_t cmp,
     st_heap_t* heap;
 
     ST_CHECK_PARAM(capacity <= 0, NULL);
-    
-    heap = (st_heap_t*)malloc(sizeof(st_heap_t));
+
+    heap = (st_heap_t*)st_malloc(sizeof(st_heap_t));
     if(NULL == heap)
     {
         ST_WARNING("alloc memory for heap failed");
         return NULL;
     }
 
-    heap->data_arr = (void**)malloc(sizeof(void*)*capacity);
+    heap->data_arr = (void**)st_malloc(sizeof(void*)*capacity);
     if(NULL == heap->data_arr)
     {
         ST_WARNING("alloc memory for data_arr failed");
@@ -136,7 +136,7 @@ int st_heap_fixdown(st_heap_t *heap, st_heap_id_t index)
     child = 2*index + 1;
     while(child < size)
     {
-        if(child + 1 < size 
+        if(child + 1 < size
                 && cmp(data_arr[child+1], data_arr[child], args) < 0)
         {
             ++child;
@@ -247,8 +247,8 @@ void st_heap_destroy(st_heap_t* heap)
     if(heap == NULL) {
         return;
     }
-    
+
     if(heap->data_arr != NULL) {
-        safe_free(heap->data_arr);
+        safe_st_free(heap->data_arr);
     }
 }

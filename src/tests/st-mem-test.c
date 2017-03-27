@@ -28,6 +28,60 @@
 
 #include "st_mem.h"
 
+static int unit_test_st_mem_usage()
+{
+    char *ptr = NULL;
+    size_t size = 123;
+    int ncase;
+
+    fprintf(stderr, " Testing st_mem_usage...\n");
+
+    if (st_mem_usage_init() < 0) {
+        fprintf(stderr, "Failed\n");
+        return -1;
+    }
+
+    ncase = 1;
+    /*****************************************/
+    fprintf(stderr, "    Case %d...", ncase++);
+    ptr = (char *)st_malloc(size);
+    if (ptr == NULL) {
+       fprintf(stderr, "Failed\n");
+       goto FAILED;
+    }
+
+    ptr = (char *)st_realloc(ptr, 2 * size);
+    if (ptr == NULL) {
+       fprintf(stderr, "Failed\n");
+       goto FAILED;
+    }
+
+    st_free(ptr);
+
+    ptr = (char *)st_aligned_malloc(size, 32);
+    if (ptr == NULL) {
+       fprintf(stderr, "Failed\n");
+       goto FAILED;
+    }
+    ptr = (char *)st_aligned_realloc(ptr, 3 * size, 32);
+    if (ptr == NULL) {
+       fprintf(stderr, "Failed\n");
+       goto FAILED;
+    }
+
+    st_aligned_free(ptr);
+
+    st_mem_usage_report();
+
+    st_mem_usage_destroy();
+
+    return 0;
+
+FAILED:
+    st_mem_usage_destroy();
+    return -1;
+}
+
 static int unit_test_st_aligned_malloc()
 {
 #define N 12
@@ -214,6 +268,10 @@ static int run_all_tests()
     }
 
     if (unit_test_st_aligned_realloc() != 0) {
+        ret = -1;
+    }
+
+    if (unit_test_st_mem_usage() != 0) {
         ret = -1;
     }
 

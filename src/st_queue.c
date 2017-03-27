@@ -33,7 +33,7 @@ st_queue_t* st_queue_create(st_queue_id_t capacity)
     st_queue_t* queue;
     void** data;
 
-    queue = (st_queue_t*)malloc(sizeof(st_queue_t));
+    queue = (st_queue_t*)st_malloc(sizeof(st_queue_t));
     if(NULL == queue) {
         ST_WARNING("alloc memory for queue failed");
         return NULL;
@@ -43,7 +43,7 @@ st_queue_t* st_queue_create(st_queue_id_t capacity)
     queue->capacity = capacity + 1;
     queue->start_idx = 0;
     queue->end_idx = -1;
-    data = (void**)malloc(sizeof(void*)*queue->capacity);
+    data = (void**)st_malloc(sizeof(void*)*queue->capacity);
     if(NULL == data) {
         ST_WARNING("alloc memory for data failed");
         goto FAILED;
@@ -111,6 +111,6 @@ void st_queue_destroy(st_queue_t* queue)
     }
 
     if(queue->data_arr != NULL) {
-        safe_free(queue->data_arr);
+        safe_st_free(queue->data_arr);
     }
 }

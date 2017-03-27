@@ -34,7 +34,7 @@ void st_stack_destroy(st_stack_t *stack)
     }
 
     if(stack->data_arr) {
-        safe_free(stack->data_arr);
+        safe_st_free(stack->data_arr);
     }
 }
 
@@ -44,7 +44,7 @@ st_stack_t* st_stack_create(st_stack_id_t capacity)
 
     ST_CHECK_PARAM(capacity <= 0, NULL);
 
-    st_stack = (st_stack_t*)malloc(sizeof(st_stack_t));
+    st_stack = (st_stack_t*)st_malloc(sizeof(st_stack_t));
     if(NULL == st_stack)
     {
         ST_WARNING("alloc memory for st_stack failed");
@@ -54,7 +54,7 @@ st_stack_t* st_stack_create(st_stack_id_t capacity)
     st_stack->capacity = capacity;
     st_stack->top = 0;
 
-    st_stack->data_arr = (void **)malloc(sizeof(void *)*capacity);
+    st_stack->data_arr = (void **)st_malloc(sizeof(void *)*capacity);
     if(NULL == st_stack->data_arr)
     {
         ST_WARNING("alloc memory for data_arr failed");

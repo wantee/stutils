@@ -1,18 +1,18 @@
 /*
  * The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Wang Jian
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,6 +32,7 @@ extern "C" {
 #include <stdio.h>
 
 #include <stutils/st_macro.h>
+#include "st_mem.h"
 
 #define ST_DICT_REALLOC_NUM 1000000
 
@@ -66,7 +67,7 @@ typedef struct _st_dict_t
     st_dict_node_t     *first_level_node;
     st_dict_id_t       hash_num;
     st_dict_id_t       realloc_node_num;
-    
+
     st_dict_node_t     *node_pool;
     st_dict_id_t       cur_index;
     st_dict_id_t       max_pool_num;
@@ -88,7 +89,7 @@ st_dict_t* st_dict_create(st_dict_id_t hash_num,
 #define safe_st_dict_destroy(ptr) do {\
     if((ptr) != NULL) {\
         st_dict_destroy(ptr);\
-        safe_free(ptr);\
+        safe_st_free(ptr);\
         (ptr) = NULL;\
     }\
     } while(0)

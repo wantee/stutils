@@ -1,18 +1,18 @@
 /*
  * The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Wang Jian
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,15 +36,15 @@ void st_dict_destroy(st_dict_t *wd)
     }
 
     if(wd->first_level_node) {
-        safe_free(wd->first_level_node);
+        safe_st_free(wd->first_level_node);
     }
 
     if(wd->node_pool) {
-        safe_free(wd->node_pool);
+        safe_st_free(wd->node_pool);
     }
-    
+
     if(wd->clear_nodes) {
-        safe_free(wd->clear_nodes);
+        safe_st_free(wd->clear_nodes);
     }
 }
 
@@ -73,7 +73,7 @@ static st_dict_t* st_dict_alloc()
 {
     st_dict_t *wd;
 
-    wd = (st_dict_t *)malloc(sizeof(st_dict_t));
+    wd = (st_dict_t *)st_malloc(sizeof(st_dict_t));
     if(wd == NULL)
     {
         ST_WARNING("Failed to alloc mem for st_dict.");
@@ -91,10 +91,10 @@ st_dict_t* st_dict_create(st_dict_id_t hash_num,
     st_dict_t      *wd;
     st_dict_id_t   i;
 
-    ST_CHECK_PARAM(hash_num == ST_DICT_BAD_NODE 
+    ST_CHECK_PARAM(hash_num == ST_DICT_BAD_NODE
             || realloc_node_num == ST_DICT_BAD_NODE, NULL);
 
-    wd = (st_dict_t *)malloc(sizeof(st_dict_t));
+    wd = (st_dict_t *)st_malloc(sizeof(st_dict_t));
     if(wd == NULL)
     {
         ST_WARNING("Failed to alloc mem for st_dict.");
@@ -124,7 +124,7 @@ st_dict_t* st_dict_create(st_dict_id_t hash_num,
     //ST_DEBUG("num=%d(0x%x), mask=0x%x, num=%d(0x%x)", hash_num, hash_num,
         //wd->addr_mask, wd->hash_num, wd->hash_num);
     wd->first_level_node = (st_dict_node_t *)
-        malloc(sizeof(st_dict_node_t) * wd->hash_num);
+        st_malloc(sizeof(st_dict_node_t) * wd->hash_num);
     if(wd->first_level_node == NULL)
     {
         ST_WARNING("Failed to alloc mem for first_level_node.");
@@ -132,17 +132,17 @@ st_dict_t* st_dict_create(st_dict_id_t hash_num,
     }
 
     wd->node_pool = (st_dict_node_t *)
-        malloc(sizeof(st_dict_node_t)*wd->hash_num);
+        st_malloc(sizeof(st_dict_node_t)*wd->hash_num);
     if(wd->node_pool == NULL)
     {
         ST_WARNING("Failed to alloc mem for node_pool.");
         goto FAILED;
     }
-    
+
     if(need_clear)
     {
         wd->clear_nodes = (st_dict_id_t *)
-            malloc(sizeof(st_dict_id_t)*wd->hash_num);
+            st_malloc(sizeof(st_dict_id_t)*wd->hash_num);
         if(wd->clear_nodes == NULL)
         {
             ST_WARNING("Failed to alloc mem for clear_nodes.");
@@ -157,7 +157,7 @@ st_dict_t* st_dict_create(st_dict_id_t hash_num,
         wd->first_level_node[i].sign2 = 0;
         wd->first_level_node[i].uint1 = 0;
         wd->first_level_node[i].next = ST_DICT_BAD_NODE;
-        
+
         wd->node_pool[i].sign1 = 0;
         wd->node_pool[i].sign2 = 0;
         wd->node_pool[i].uint1 = 0;
@@ -180,7 +180,7 @@ static st_dict_id_t st_dict_add_in(st_dict_t *wd, st_dict_node_t *pnode)
 
     if(wd->cur_index >= wd->max_pool_num)
     {
-        wd->node_pool = (st_dict_node_t *)realloc(wd->node_pool,
+        wd->node_pool = (st_dict_node_t *)st_realloc(wd->node_pool,
             (wd->max_pool_num + wd->realloc_node_num)*sizeof(st_dict_node_t));
         if(wd->node_pool == NULL)
         {
@@ -206,7 +206,7 @@ int st_dict_add(st_dict_t *wd, st_dict_node_t *pnode, void *node_eq_arg)
     st_dict_id_t ret;
     st_dict_node_t *work;
 
-    ST_CHECK_PARAM(pnode == NULL 
+    ST_CHECK_PARAM(pnode == NULL
             || (pnode->sign1 == 0 && pnode->sign2 == 0), -1);
 
     if(st_dict_seek(wd, pnode, node_eq_arg)== 0)
@@ -251,7 +251,7 @@ int st_dict_add_no_seek(st_dict_t *wd, st_dict_node_t *pnode)
     st_dict_id_t ret;
     st_dict_node_t *work;
 
-    ST_CHECK_PARAM(pnode == NULL 
+    ST_CHECK_PARAM(pnode == NULL
             || (pnode->sign1 == 0 && pnode->sign2 == 0), -1);
 
     hash_key = wd->hash_func(wd, pnode);
@@ -288,7 +288,7 @@ int st_dict_seek(st_dict_t *wd, st_dict_node_t *pnode, void *node_eq_arg)
     st_dict_id_t hash_key;
     st_dict_node_t *work;
 
-    ST_CHECK_PARAM(pnode == NULL 
+    ST_CHECK_PARAM(pnode == NULL
             || (pnode->sign1 == 0 && pnode->sign2 == 0), -1);
 
     hash_key = wd->hash_func(wd, pnode);
@@ -318,7 +318,7 @@ int st_dict_seek(st_dict_t *wd, st_dict_node_t *pnode, void *node_eq_arg)
             return 0;
         }
     }
-    
+
     return -1;
 }
 
@@ -377,7 +377,7 @@ int st_dict_save(st_dict_t *wd, FILE *fp)
         ST_WARNING("Failed to write first_level_node");
         return -1;
     }
-    
+
     ret = fwrite(wd->node_pool, sizeof(st_dict_node_t),
         wd->max_pool_num, fp);
     if(ret != (size_t)wd->max_pool_num)
@@ -385,7 +385,7 @@ int st_dict_save(st_dict_t *wd, FILE *fp)
         ST_WARNING("Failed to write node_pool");
         return -1;
     }
-    
+
     fflush(fp);
 
     return 0;
@@ -440,7 +440,7 @@ int st_dict_load(st_dict_t *wd, FILE *fp)
     }
 
     wd->first_level_node = (st_dict_node_t *)
-        malloc(sizeof(st_dict_node_t)*wd->hash_num);
+        st_malloc(sizeof(st_dict_node_t)*wd->hash_num);
     if(wd->first_level_node == NULL)
     {
         ST_WARNING("Failed to alloc first_level_node.");
@@ -448,7 +448,7 @@ int st_dict_load(st_dict_t *wd, FILE *fp)
     }
 
     wd->node_pool = (st_dict_node_t *)
-        malloc(sizeof(st_dict_node_t)*wd->max_pool_num);
+        st_malloc(sizeof(st_dict_node_t)*wd->max_pool_num);
     if(wd->node_pool == NULL)
     {
         ST_WARNING("Failed to alloc node_pool.");
@@ -462,7 +462,7 @@ int st_dict_load(st_dict_t *wd, FILE *fp)
         ST_WARNING("Failed to read first_level_node");
         return -1;
     }
-    
+
     ret = fread(wd->node_pool, sizeof(st_dict_node_t),
         wd->max_pool_num, fp);
     if(ret != wd->max_pool_num)
@@ -470,7 +470,7 @@ int st_dict_load(st_dict_t *wd, FILE *fp)
         ST_WARNING("Failed to read node_pool");
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -490,7 +490,7 @@ st_dict_t* st_dict_load_from_bin(FILE *fp)
     {
         ST_WARNING("Failed to st_alphabet_load_txt_fp.");
         goto ERR;
-        
+
     }
 
     wd->hash_func = st_dict_hash_simple;
@@ -622,7 +622,7 @@ int st_dict_update(st_dict_t *wd, st_dict_node_t *pnode, void *node_eq_arg,
     st_dict_id_t ret;
     st_dict_node_t *work;
 
-    ST_CHECK_PARAM(pnode == NULL 
+    ST_CHECK_PARAM(pnode == NULL
             || (pnode->sign1 == 0 && pnode->sign2 == 0), -1);
 
     hash_key = wd->hash_func(wd, pnode);
@@ -655,7 +655,7 @@ int st_dict_update(st_dict_t *wd, st_dict_node_t *pnode, void *node_eq_arg,
             return 0;
         }
     }
-    
+
     work = wd->first_level_node + hash_key;
     if(work->sign1 == 0 && work->sign2 == 0)
     {
@@ -690,7 +690,7 @@ st_dict_t* st_dict_dup(st_dict_t *d)
 
     ST_CHECK_PARAM(d == NULL, NULL);
 
-    dict = (st_dict_t *)malloc(sizeof(st_dict_t));
+    dict = (st_dict_t *)st_malloc(sizeof(st_dict_t));
     if(dict == NULL) {
         ST_WARNING("Failed to alloc mem for st_dict.");
         return NULL;
@@ -709,7 +709,7 @@ st_dict_t* st_dict_dup(st_dict_t *d)
     dict->node_eq_func = d->node_eq_func;
 
     dict->first_level_node = (st_dict_node_t *)
-        malloc(sizeof(st_dict_node_t) * dict->hash_num);
+        st_malloc(sizeof(st_dict_node_t) * dict->hash_num);
     if(dict->first_level_node == NULL) {
         ST_WARNING("Failed to alloc mem for first_level_node.");
         goto ERR;
@@ -718,7 +718,7 @@ st_dict_t* st_dict_dup(st_dict_t *d)
             sizeof(st_dict_node_t)*dict->hash_num);
 
     dict->node_pool = (st_dict_node_t *)
-        malloc(sizeof(st_dict_node_t)*dict->max_pool_num);
+        st_malloc(sizeof(st_dict_node_t)*dict->max_pool_num);
     if(dict->node_pool == NULL) {
         ST_WARNING("Failed to alloc mem for node_pool.");
         goto ERR;
@@ -729,7 +729,7 @@ st_dict_t* st_dict_dup(st_dict_t *d)
 
     if(d->clear_nodes != NULL) {
         dict->clear_nodes = (st_dict_id_t *)
-            malloc(sizeof(st_dict_id_t)*dict->hash_num);
+            st_malloc(sizeof(st_dict_id_t)*dict->hash_num);
         if(dict->clear_nodes == NULL) {
             ST_WARNING("Failed to alloc mem for clear_nodes.");
             goto ERR;

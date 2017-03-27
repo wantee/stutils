@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 #include <stutils/st_macro.h>
+#include "st_mem.h"
 
 #define ST_QUEUE_OK    0
 #define ST_QUEUE_ERR   -1
@@ -63,7 +64,7 @@ int st_queue_clear(st_queue_t* queue);
 #define safe_st_queue_destroy(ptr) do {\
     if((ptr) != NULL) {\
         st_queue_destroy(ptr);\
-        safe_free(ptr);\
+        safe_st_free(ptr);\
         (ptr) = NULL;\
     }\
     } while(0)

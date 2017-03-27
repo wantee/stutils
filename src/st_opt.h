@@ -32,6 +32,7 @@ extern "C" {
 #include <stdio.h>
 
 #include <stutils/st_macro.h>
+#include "st_mem.h"
 #include "st_conf.h"
 
 typedef enum _st_opt_type_t_ {
@@ -76,7 +77,7 @@ int st_opt_parse(st_opt_t *opt, int *argc, const char *argv[]);
 #define safe_st_opt_destroy(ptr) do {\
     if((ptr) != NULL) {\
         st_opt_destroy(ptr);\
-        safe_free(ptr);\
+        safe_st_free(ptr);\
         (ptr) = NULL;\
     }\
     } while(0)

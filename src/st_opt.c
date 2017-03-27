@@ -44,10 +44,10 @@ static int resize_opt_info(st_opt_t *opt)
 {
     if (opt->info_num >= opt->info_cap) {
         opt->info_cap += INFO_NUM;
-        opt->infos = (st_opt_info_t *) realloc(opt->infos,
+        opt->infos = (st_opt_info_t *)st_realloc(opt->infos,
                     opt->info_cap * sizeof(st_opt_info_t));
         if (opt->infos == NULL) {
-            ST_WARNING("Failed to realloc st_opt_info.");
+            ST_WARNING("Failed to st_realloc st_opt_info.");
             goto ERR;
         }
         memset(opt->infos + opt->info_num, 0,
@@ -63,9 +63,9 @@ st_opt_t* st_opt_create()
 {
     st_opt_t *opt = NULL;
 
-    opt = (st_opt_t *) malloc(sizeof(st_opt_t));
+    opt = (st_opt_t *) st_malloc(sizeof(st_opt_t));
     if (opt == NULL) {
-        ST_WARNING("Failed to malloc st_opt.");
+        ST_WARNING("Failed to st_malloc st_opt.");
         goto ERR;
     }
     memset(opt, 0, sizeof(st_opt_t));
@@ -76,9 +76,9 @@ st_opt_t* st_opt_create()
         goto ERR;
     }
 
-    opt->infos = (st_opt_info_t *)malloc(sizeof(st_opt_info_t)*INFO_NUM);
+    opt->infos = (st_opt_info_t *)st_malloc(sizeof(st_opt_info_t)*INFO_NUM);
     if (opt->infos == NULL) {
-        ST_WARNING("Failed to malloc st_opt_info.");
+        ST_WARNING("Failed to st_malloc st_opt_info.");
         goto ERR;
     }
     memset(opt->infos, 0, sizeof(st_opt_info_t)*INFO_NUM);
@@ -100,7 +100,7 @@ void st_opt_destroy(st_opt_t *popt)
     safe_st_conf_destroy(popt->file_conf);
     safe_st_conf_destroy(popt->cmd_conf);
 
-    safe_free(popt->infos);
+    safe_st_free(popt->infos);
 }
 
 void st_opt_show(st_opt_t *popt, const char *header)

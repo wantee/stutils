@@ -35,6 +35,7 @@
 #include <stutils/st_macro.h>
 #include "st_utils.h"
 #include "st_log.h"
+#include "st_mem.h"
 #include "st_int.h"
 
 int st_parse_int_array(const char *str, int **arr, int *n_arr)
@@ -53,9 +54,9 @@ int st_parse_int_array(const char *str, int **arr, int *n_arr)
                 ST_WARNING("Error array: No number found before ','");
                 return -1;
             }
-            *arr = (int *)realloc(*arr, sizeof(int)*(*n_arr + 1));
+            *arr = (int *)st_realloc(*arr, sizeof(int)*(*n_arr + 1));
             if (*arr == NULL) {
-                ST_WARNING("Failed to realloc array[%d].", *n_arr);
+                ST_WARNING("Failed to st_realloc array[%d].", *n_arr);
                 return -1;
             }
             if (neg) {
@@ -90,9 +91,9 @@ int st_parse_int_array(const char *str, int **arr, int *n_arr)
         ST_WARNING("Error array: extra ',' found in the end");
         return -1;
     }
-    *arr = (int *)realloc(*arr, sizeof(int)*(*n_arr + 1));
+    *arr = (int *)st_realloc(*arr, sizeof(int)*(*n_arr + 1));
     if (*arr == NULL) {
-        ST_WARNING("Failed to realloc array[%d].", *n_arr);
+        ST_WARNING("Failed to st_realloc array[%d].", *n_arr);
         return -1;
     }
     if (neg) {
@@ -136,10 +137,10 @@ int st_parse_wt_int_array(const char *str, st_wt_int_t **arr, int *n_arr,
                 ST_WARNING("Error array: No number found before ','");
                 return -1;
             }
-            *arr = (st_wt_int_t *)realloc(*arr,
+            *arr = (st_wt_int_t *)st_realloc(*arr,
                     sizeof(st_wt_int_t)*(*n_arr + 1));
             if (*arr == NULL) {
-                ST_WARNING("Failed to realloc array[%d].", *n_arr);
+                ST_WARNING("Failed to st_realloc array[%d].", *n_arr);
                 return -1;
             }
             if (neg) {
@@ -235,10 +236,10 @@ int st_parse_wt_int_array(const char *str, st_wt_int_t **arr, int *n_arr,
         ST_WARNING("Error array: extra ',' found in the end");
         return -1;
     }
-    *arr = (st_wt_int_t *)realloc(*arr,
+    *arr = (st_wt_int_t *)st_realloc(*arr,
             sizeof(st_wt_int_t)*(*n_arr + 1));
     if (*arr == NULL) {
-        ST_WARNING("Failed to realloc array[%d].", *n_arr);
+        ST_WARNING("Failed to st_realloc array[%d].", *n_arr);
         return -1;
     }
     if (neg) {

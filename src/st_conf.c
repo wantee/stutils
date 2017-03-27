@@ -37,10 +37,10 @@ static int resize_sec(st_conf_section_t *sec)
 {
     if (sec->param_num >= sec->param_cap) {
         sec->param_cap += PARAM_NUM;
-        sec->param = (st_conf_param_t *) realloc(sec->param,
+        sec->param = (st_conf_param_t *)st_realloc(sec->param,
                     sec->param_cap * sizeof(st_conf_param_t));
         if (sec->param == NULL) {
-            ST_WARNING("Failed to realloc param for sec.");
+            ST_WARNING("Failed to st_realloc param for sec.");
             goto ERR;
         }
         memset(sec->param + sec->param_num, 0,
@@ -49,10 +49,10 @@ static int resize_sec(st_conf_section_t *sec)
 
     if (sec->def_param_num >= sec->def_param_cap) {
         sec->def_param_cap += PARAM_NUM;
-        sec->def_param = (st_conf_param_t *) realloc(sec->def_param,
+        sec->def_param = (st_conf_param_t *)st_realloc(sec->def_param,
                     sec->def_param_cap * sizeof(st_conf_param_t));
         if (sec->def_param == NULL) {
-            ST_WARNING("Failed to realloc def_param for sec.");
+            ST_WARNING("Failed to st_realloc def_param for sec.");
             goto ERR;
         }
         memset(sec->def_param + sec->def_param_num, 0,
@@ -76,10 +76,10 @@ st_conf_section_t* st_conf_new_sec(st_conf_t *conf, const char *name)
 
     if (conf->sec_num >= conf->sec_cap) {
         conf->sec_cap += SEC_NUM;
-        conf->secs = (st_conf_section_t *) realloc(conf->secs,
+        conf->secs = (st_conf_section_t *)st_realloc(conf->secs,
                     conf->sec_cap * sizeof(st_conf_section_t));
         if (conf->secs == NULL) {
-            ST_WARNING("Failed to realloc secs.");
+            ST_WARNING("Failed to st_realloc secs.");
             goto ERR;
         }
         memset(conf->secs + conf->sec_num, 0,
@@ -259,9 +259,9 @@ st_conf_t* st_conf_create()
 {
     st_conf_t *pconf = NULL;
 
-    pconf = (st_conf_t *) malloc(sizeof(st_conf_t));
+    pconf = (st_conf_t *)st_malloc(sizeof(st_conf_t));
     if (pconf == NULL) {
-        ST_WARNING("Failed to malloc st_conf.");
+        ST_WARNING("Failed to st_malloc st_conf.");
         goto ERR;
     }
     memset(pconf, 0, sizeof(st_conf_t));
@@ -787,24 +787,15 @@ void st_conf_destroy(st_conf_t * pconf)
     int i;
     if (pconf != NULL) {
         for (i = 0; i < pconf->sec_num; i++) {
-            if (pconf->secs[i].param != NULL) {
-                free(pconf->secs[i].param);
-                pconf->secs[i].param = NULL;
-            }
+            safe_st_free(pconf->secs[i].param);
             pconf->secs[i].param_cap = 0;
             pconf->secs[i].param_num = 0;
 
-            if (pconf->secs[i].def_param != NULL) {
-                free(pconf->secs[i].def_param);
-                pconf->secs[i].def_param = NULL;
-            }
+            safe_st_free(pconf->secs[i].def_param);
             pconf->secs[i].def_param_cap = 0;
             pconf->secs[i].def_param_num = 0;
         }
-        if (pconf->secs != NULL) {
-            free(pconf->secs);
-            pconf->secs = NULL;
-        }
+        safe_st_free(pconf->secs);
         pconf->sec_cap = 0;
         pconf->sec_num = 0;
     }

@@ -23,6 +23,7 @@
  */
 
 #include <string.h>
+
 #include "st_utils.h"
 #include "st_alphabet.h"
 #include "st_log.h"
@@ -57,11 +58,11 @@ void st_alphabet_destroy(st_alphabet_t *alphabet)
     }
 
     if(alphabet->labels) {
-        safe_free(alphabet->labels);
+        safe_st_free(alphabet->labels);
     }
 
     if(alphabet->is_aux) {
-        safe_free(alphabet->is_aux);
+        safe_st_free(alphabet->is_aux);
     }
 
     if(alphabet->index_dict) {
@@ -73,7 +74,7 @@ static st_alphabet_t* st_alphabet_alloc()
 {
     st_alphabet_t *alphabet;
 
-    alphabet = (st_alphabet_t *)malloc(sizeof(st_alphabet_t));
+    alphabet = (st_alphabet_t *)st_malloc(sizeof(st_alphabet_t));
     if(alphabet == NULL)
     {
         ST_WARNING("Failed to alloc alphabet.");
@@ -136,7 +137,7 @@ st_alphabet_t* st_alphabet_create(int max_label_num)
 
     alphabet->max_label_num = max_label_num;
     alphabet->labels = (st_label_t *)
-        malloc(max_label_num * sizeof(st_label_t));
+        st_malloc(max_label_num * sizeof(st_label_t));
     if(alphabet->labels == NULL)
     {
         ST_WARNING("Failed to allocate memory for labels.");
@@ -156,7 +157,7 @@ st_alphabet_t* st_alphabet_create(int max_label_num)
         goto ERR;
     }
 
-    alphabet->is_aux = (bool *) malloc(max_label_num * sizeof(bool));
+    alphabet->is_aux = (bool *)st_malloc(max_label_num * sizeof(bool));
     if(alphabet->is_aux == NULL)
     {
         ST_WARNING("Failed to allocate memory for is_aux.");
@@ -344,14 +345,14 @@ int st_alphabet_load_txt(st_alphabet_t *alphabet, FILE *fp)
         goto ERR;
     }
 
-    labels = (st_label_t *)malloc(label_num * sizeof(st_label_t));
+    labels = (st_label_t *)st_malloc(label_num * sizeof(st_label_t));
     if(labels == NULL)
     {
         ST_WARNING("Failed to allocate memory for labels.");
         goto ERR;
     }
 
-    is_aux = (bool *)malloc(label_num * sizeof(bool));
+    is_aux = (bool *)st_malloc(label_num * sizeof(bool));
     if(is_aux == NULL)
     {
         ST_WARNING("Failed to allocate memory for is_aux.");
@@ -483,17 +484,17 @@ static int st_alphabet_load_bin(st_alphabet_t *alphabet, FILE *fp)
     }
 
     alphabet->labels = (st_label_t *)
-        malloc(sizeof(st_label_t)*alphabet->label_num);
+        st_malloc(sizeof(st_label_t)*alphabet->label_num);
     if(alphabet->labels == NULL)
     {
-        ST_WARNING("Failed to malloc labels. [%d]", alphabet->label_num);
+        ST_WARNING("Failed to st_malloc labels. [%d]", alphabet->label_num);
         return -1;
     }
 
-    alphabet->is_aux = (bool *)malloc(sizeof(bool)*alphabet->label_num);
+    alphabet->is_aux = (bool *)st_malloc(sizeof(bool)*alphabet->label_num);
     if(alphabet->is_aux == NULL)
     {
-        ST_WARNING("Failed to malloc is_aux.");
+        ST_WARNING("Failed to st_malloc is_aux.");
         return -1;
     }
 
@@ -563,7 +564,7 @@ st_alphabet_t* st_alphabet_dup(st_alphabet_t *a)
     alphabet->aux_num = a->aux_num;
 
     alphabet->labels = (st_label_t *)
-        malloc(a->max_label_num * sizeof(st_label_t));
+        st_malloc(a->max_label_num * sizeof(st_label_t));
     if(alphabet->labels == NULL) {
         ST_WARNING("Failed to allocate memory for labels.");
         goto ERR;
@@ -578,7 +579,7 @@ st_alphabet_t* st_alphabet_dup(st_alphabet_t *a)
         goto ERR;
     }
 
-    alphabet->is_aux = (bool *) malloc(a->max_label_num * sizeof(bool));
+    alphabet->is_aux = (bool *)st_malloc(a->max_label_num * sizeof(bool));
     if(alphabet->is_aux == NULL) {
         ST_WARNING("Failed to allocate memory for is_aux.");
         goto ERR;

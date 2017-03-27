@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 #include <stutils/st_macro.h>
+#include "st_mem.h"
 
 #define MAX_ST_CONF_LEN        256
 #define MAX_ST_CONF_LINE_LEN   1024
@@ -72,7 +73,7 @@ int st_conf_load(st_conf_t *st_conf, const char *conf_file);
 #define safe_st_conf_destroy(ptr) do {\
     if((ptr) != NULL) {\
         st_conf_destroy(ptr);\
-        safe_free(ptr);\
+        safe_st_free(ptr);\
         (ptr) = NULL;\
     }\
     } while(0)

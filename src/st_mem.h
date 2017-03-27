@@ -29,7 +29,57 @@
 extern "C" {
 #endif
 
-#define is_power_of_two(x) (((x) != 0) && !((x) & ((x) - 1)))
+/*
+ * alloc memory block.
+ *
+ * @param[in] size size of bytes for alloc.
+ * @return pointer to the alloced memory, NULL if any error.
+ */
+void* st_malloc(size_t size);
+
+/*
+ * realloc memory block.
+ *
+ * @param[in] ptr original block. This pointer must be the one returned
+ *                from st_malloc or st_realloc.
+ *                If ptr == NULL, it will return a new block.
+ * @param[in] size new size of block.
+ * @return pointer to the realloced memory, NULL if any error.
+ */
+void* st_realloc(void *ptr, size_t size);
+
+#define safe_st_free(ptr) do {\
+    if((ptr) != NULL) {\
+        st_free(ptr);\
+        (ptr) = NULL;\
+    }\
+    } while(0)
+/*
+ * free a memory block.
+ *
+ * @param[in] ptr memory block. This pointer must be the one returned
+ *                from st_malloc or st_realloc.
+ */
+void st_free(void *p);
+
+/*
+ * initialize memory usage statistics
+ *
+ * @return non-zero if any error.
+ */
+int st_mem_usage_init();
+
+/*
+ * report memory usage statistics
+ *
+ */
+void st_mem_usage_report();
+
+/*
+ * destroy memory usage statistics
+ *
+ */
+void st_mem_usage_destroy();
 
 /*
  * alloc aligned memory block.

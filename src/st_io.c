@@ -29,6 +29,7 @@
 
 #include <stutils/st_macro.h>
 #include "st_log.h"
+#include "st_mem.h"
 #include "st_io.h"
 
 FILE* st_fopen(const char *name, const char *mode)
@@ -86,9 +87,9 @@ char* st_fgets(char **line, size_t *sz, FILE *fp, bool *err)
     }
 
     if (*line == NULL || *sz <= 0) {
-        *line = (char *)malloc(MAX_LINE_LEN);
+        *line = (char *)st_malloc(MAX_LINE_LEN);
         if (*line == NULL) {
-            ST_WARNING("Failed to malloc line");
+            ST_WARNING("Failed to st_malloc line");
             goto ERR;
         }
         *sz = MAX_LINE_LEN;
@@ -119,9 +120,9 @@ char* st_fgets(char **line, size_t *sz, FILE *fp, bool *err)
         old_sz = *sz;
         *sz *= 2;
 
-        *line = (char *)realloc(*line, *sz);
+        *line = (char *)st_realloc(*line, *sz);
         if (*line == NULL) {
-            ST_WARNING("Failed to realloc line. size[%zu -> %zu]",
+            ST_WARNING("Failed to st_realloc line. size[%zu -> %zu]",
                     old_sz, *sz);
             goto ERR;
         }
@@ -168,11 +169,11 @@ int st_readline(FILE *fp, const char *fmt, ...)
     ret = vsscanf(line, fmt, args);
     va_end (args);
 
-    safe_free(line);
+    safe_st_free(line);
     return ret;
 
 ERR:
-    safe_free(line);
+    safe_st_free(line);
     return -1;
 }
 

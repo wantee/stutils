@@ -38,7 +38,7 @@ extern "C" {
  * Parse int array from a comma seperated string.
  *
  * @param[in] str input string.
- * @param[out] arr output int array, may be malloced/realloced.
+ * @param[out] arr output int array, may be st_malloced/st_realloced.
  * @param[out] n_arr number of ints.
  * @return non-zero value if any error.
  */
@@ -56,7 +56,7 @@ typedef struct _st_weighted_int_t_ {
  * Parse weighted int array from a comma seperated string.
  *
  * @param[in] str input string.
- * @param[out] arr output int array, may be malloced/realloced.
+ * @param[out] arr output int array, may be st_malloced/st_realloced.
  * @param[out] n_arr number of ints.
  * @param[in] def_wt default value for weight.
  * @return non-zero value if any error.

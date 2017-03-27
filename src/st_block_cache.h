@@ -33,6 +33,7 @@ extern "C" {
 #include <stdint.h>
 
 #include <stutils/st_macro.h>
+#include "st_mem.h"
 
 /** @defgroup g_block_cache Block Memory Cache
  * Cache for blocks of memory. Store a series of memory block with fixed size,
@@ -81,7 +82,7 @@ st_block_cache_t* st_block_cache_create(size_t block_size,
 #define safe_st_block_cache_destroy(ptr) do {\
     if((ptr) != NULL) {\
         st_block_cache_destroy(ptr);\
-        safe_free(ptr);\
+        safe_st_free(ptr);\
         (ptr) = NULL;\
     }\
     } while(0)

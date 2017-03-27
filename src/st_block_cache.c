@@ -35,9 +35,9 @@ st_block_cache_t* st_block_cache_create(size_t block_size,
 
     ST_CHECK_PARAM(block_size <= 0 || init_count <= 0, NULL);
 
-    bcache = (st_block_cache_t *)malloc(sizeof(st_block_cache_t));
+    bcache = (st_block_cache_t *)st_malloc(sizeof(st_block_cache_t));
     if (bcache == NULL) {
-        ST_WARNING("Failed to malloc st_block_cache_t.");
+        ST_WARNING("Failed to st_malloc st_block_cache_t.");
         goto ERR;
     }
     memset(bcache, 0, sizeof(st_block_cache_t));
@@ -46,22 +46,22 @@ st_block_cache_t* st_block_cache_create(size_t block_size,
     bcache->capacity = init_count;
     bcache->realloc_count = realloc_count;
 
-    bcache->data = malloc(block_size * init_count);
+    bcache->data = st_malloc(block_size * init_count);
     if (bcache->data == NULL) {
-        ST_WARNING("Failed to malloc data.");
+        ST_WARNING("Failed to st_malloc data.");
         goto ERR;
     }
 
-    bcache->ref_counts = (bcache_id_t *)malloc(sizeof(bcache_id_t) * init_count);
+    bcache->ref_counts = (bcache_id_t *)st_malloc(sizeof(bcache_id_t) * init_count);
     if (bcache->ref_counts == NULL) {
-        ST_WARNING("Failed to malloc ref_counts.");
+        ST_WARNING("Failed to st_malloc ref_counts.");
         goto ERR;
     }
     memset(bcache->ref_counts, 0, sizeof(bcache_id_t) * init_count);
 
-    bcache->free_blocks = (bcache_id_t *)malloc(sizeof(bcache_id_t) * init_count);
+    bcache->free_blocks = (bcache_id_t *)st_malloc(sizeof(bcache_id_t) * init_count);
     if (bcache->free_blocks == NULL) {
-        ST_WARNING("Failed to realloc free_blocks.");
+        ST_WARNING("Failed to st_malloc free_blocks.");
         goto ERR;
     }
     for (i = 0; i < init_count; i++) {
@@ -86,14 +86,14 @@ void st_block_cache_destroy(st_block_cache_t* bcache)
         return;
     }
 
-    safe_free(bcache->data);
-    safe_free(bcache->ref_counts);
+    safe_st_free(bcache->data);
+    safe_st_free(bcache->ref_counts);
 
     bcache->capacity = 0;
     bcache->block_size = 0;
     bcache->realloc_count = 0;
 
-    safe_free(bcache->free_blocks);
+    safe_st_free(bcache->free_blocks);
     bcache->num_free_blocks = 0;
 
     (void)pthread_mutex_destroy(&bcache->lock);
@@ -134,26 +134,26 @@ static bcache_id_t st_bcache_get_free_block(st_block_cache_t *bcache)
             return -1;
         }
 
-        bcache->data = realloc(bcache->data, bcache->block_size
+        bcache->data = st_realloc(bcache->data, bcache->block_size
                 * (bcache->capacity + bcache->realloc_count));
         if (bcache->data == NULL) {
-            ST_WARNING("Failed to realloc data.");
+            ST_WARNING("Failed to st_realloc data.");
             return -1;
         }
 
-        bcache->ref_counts = (bcache_id_t *)realloc(bcache->ref_counts,
+        bcache->ref_counts = (bcache_id_t *)st_realloc(bcache->ref_counts,
             sizeof(bcache_id_t) * (bcache->capacity + bcache->realloc_count));
         if (bcache->ref_counts == NULL) {
-            ST_WARNING("Failed to realloc ref_counts.");
+            ST_WARNING("Failed to st_realloc ref_counts.");
             return -1;
         }
         memset(bcache->ref_counts + bcache->capacity, 0,
                 sizeof(bcache_id_t) * bcache->realloc_count);
 
-        bcache->free_blocks = (bcache_id_t *)realloc(bcache->free_blocks,
+        bcache->free_blocks = (bcache_id_t *)st_realloc(bcache->free_blocks,
             sizeof(bcache_id_t) * (bcache->capacity + bcache->realloc_count));
         if (bcache->free_blocks == NULL) {
-            ST_WARNING("Failed to realloc free_blocks.");
+            ST_WARNING("Failed to st_realloc free_blocks.");
             return -1;
         }
         for (i = 0; i < bcache->realloc_count; i++) {
