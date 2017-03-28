@@ -123,8 +123,12 @@ void* st_realloc_impl(void *ptr, size_t size)
     }
 
     p = (size_t *)ptr;
-    --p; // recover starting point
-    old_size = p[0];
+    if (p == NULL) {
+        old_size = 0;
+    } else {
+        --p; // recover starting point
+        old_size = p[0];
+    }
 
     p = (size_t *)realloc(p, size + sizeof(size_t));
     if (p == NULL) {
