@@ -78,7 +78,7 @@ void st_mem_usage_destroy()
     g_collect_usage = false;
 }
 
-void* st_malloc(size_t size)
+void* st_malloc_impl(size_t size)
 {
     size_t *p;
 
@@ -113,7 +113,7 @@ void* st_malloc(size_t size)
     return (void *)(p + 1);
 }
 
-void* st_realloc(void *ptr, size_t size)
+void* st_realloc_impl(void *ptr, size_t size)
 {
     size_t *p;
     size_t old_size;
@@ -183,7 +183,19 @@ void st_free(void *p)
     }
 }
 
-void* st_aligned_malloc(size_t size, size_t alignment)
+size_t st_mem_size(void *p)
+{
+    size_t *p1;
+
+    if (p == NULL) {
+        return 0;
+    }
+
+    p1 = (size_t *)p;
+    return p1[-1];
+}
+
+void* st_aligned_malloc_impl(size_t size, size_t alignment)
 {
     void *p1; // original block
     void *p2; // aligned block
@@ -228,7 +240,7 @@ void* st_aligned_malloc(size_t size, size_t alignment)
     return p2;
 }
 
-void* st_aligned_realloc(void *ptr, size_t size, size_t alignment)
+void* st_aligned_realloc_impl(void *ptr, size_t size, size_t alignment)
 {
     void *p1, *q1; // original block
     void *q2; // aligned block
@@ -370,3 +382,35 @@ size_t st_aligned_size(void *p)
     p3 = (size_t *)p;
     return p3[-3];
 }
+
+#ifdef _ST_MEM_DEBUG_
+void* st_malloc_wrapper(size_t size, const char *file, size_t line,
+        const char *func)
+{
+    ST_CLEAN("[%s:%zu<<%s>>] st_malloc: %zu", file, line, func, size);
+    return st_malloc_impl(size);
+}
+
+void* st_realloc_wrapper(void *p, size_t size, const char *file, size_t line,
+        const char *func)
+{
+    ST_CLEAN("[%s:%zu<<%s>>] st_realloc: %zu - %zu = %zu", file, line, func,
+            size, st_mem_size(p), size - st_mem_size(p));
+    return st_realloc_impl(p, size);
+}
+
+void* st_aligned_malloc_wrapper(size_t size, size_t alignment,
+        const char *file, size_t line, const char *func)
+{
+    ST_CLEAN("[%s:%zu<<%s>>] st_aligned_malloc: %zu", file, line, func, size);
+    return st_aligned_malloc_impl(size, alignment);
+}
+
+void* st_aligned_realloc_wrapper(void *p, size_t size, size_t alignment,
+        const char *file, size_t line, const char *func)
+{
+    ST_CLEAN("[%s:%zu<<%s>>] st_aligned_realloc: %zu - %zu = %zu", file, line, func,
+            size, st_aligned_size(p), size - st_aligned_size(p));
+    return st_aligned_realloc_impl(p, size, alignment);
+}
+#endif // _ST_MEM_DEBUG_
