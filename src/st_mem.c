@@ -394,8 +394,13 @@ void* st_malloc_wrapper(size_t size, const char *file, size_t line,
 void* st_realloc_wrapper(void *p, size_t size, const char *file, size_t line,
         const char *func)
 {
-    ST_CLEAN("[%s:%zu<<%s>>] st_realloc: %zu - %zu = %zu", file, line, func,
-            size, st_mem_size(p), size - st_mem_size(p));
+    if (g_collect_usage) {
+        ST_CLEAN("[%s:%zu<<%s>>] st_realloc: %zu - %zu = %zu", file, line, func,
+                size, st_mem_size(p), size - st_mem_size(p));
+    } else {
+        ST_CLEAN("[%s:%zu<<%s>>] st_realloc: %zu", file, line, func, size);
+    }
+
     return st_realloc_impl(p, size);
 }
 
