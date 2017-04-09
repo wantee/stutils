@@ -49,7 +49,8 @@ TESTS = tests/st-utils-test \
         tests/st-string-test \
         tests/st-mem-test \
         tests/st-queue-test \
-        tests/st-block-cache-test
+        tests/st-block-cache-test \
+        tests/st-bit-test
 
 VAL_TESTS = tests/st-utils-test \
             tests/st-conf-test \
@@ -57,7 +58,8 @@ VAL_TESTS = tests/st-utils-test \
             tests/st-string-test \
             tests/st-mem-test \
             tests/st-queue-test \
-            tests/st-block-cache-test
+            tests/st-block-cache-test \
+            tests/st-bit-test
 
 .PHONY: all
 all:
