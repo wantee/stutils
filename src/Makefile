@@ -22,7 +22,8 @@ INCS = st_dict.h \
        st_rand.h \
        st_mem.h \
        st_block_cache.h \
-       st_bit.h
+       st_bit.h \
+       st_varint.h
 
 SRCS = st_dict.c \
        st_alphabet.c \
@@ -41,7 +42,8 @@ SRCS = st_dict.c \
        st_rand.c \
        st_mem.c \
        st_block_cache.c \
-       st_bit.c
+       st_bit.c \
+       st_varint.c
 
 TESTS = tests/st-utils-test \
         tests/st-conf-test \
@@ -50,7 +52,8 @@ TESTS = tests/st-utils-test \
         tests/st-mem-test \
         tests/st-queue-test \
         tests/st-block-cache-test \
-        tests/st-bit-test
+        tests/st-bit-test \
+        tests/st-varint-test
 
 VAL_TESTS = tests/st-utils-test \
             tests/st-conf-test \
@@ -59,7 +62,8 @@ VAL_TESTS = tests/st-utils-test \
             tests/st-mem-test \
             tests/st-queue-test \
             tests/st-block-cache-test \
-            tests/st-bit-test
+            tests/st-bit-test \
+            tests/st-varint-test
 
 .PHONY: all
 all:
