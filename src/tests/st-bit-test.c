@@ -57,10 +57,10 @@ static int unit_test_st_nbit()
             goto FAILED;
         }
     }
+
     for (i = 0; i < nb; i++) {
         st_nbit_set(A, u, i, (int)(i % (1 << u)));
     }
-
     for (i = 0; i < nb; i++) {
         if (st_nbit_get(A, u, i) != (int)(i % (1 << u))) {
             fprintf(stderr, "Failed\n");
@@ -68,6 +68,15 @@ static int unit_test_st_nbit()
         }
     }
 
+    for (i = 0; i < nb; i++) {
+        st_nbit_set(A, u, i, (int)((i * 2) % (1 << u)));
+    }
+    for (i = 0; i < nb; i++) {
+        if (st_nbit_get(A, u, i) != (int)((i * 2) % (1 << u))) {
+            fprintf(stderr, "Failed\n");
+            goto FAILED;
+        }
+    }
     /*****************************************/
     fprintf(stderr, "    Case %d...", ncase++);
     u = 2;
@@ -82,12 +91,22 @@ static int unit_test_st_nbit()
             goto FAILED;
         }
     }
+
     for (i = 0; i < nb; i++) {
         st_nbit_set(A, u, i, (int)(i % (1 << u)));
     }
-
     for (i = 0; i < nb; i++) {
         if (st_nbit_get(A, u, i) != (int)(i % (1 << u))) {
+            fprintf(stderr, "Failed\n");
+            goto FAILED;
+        }
+    }
+
+    for (i = 0; i < nb; i++) {
+        st_nbit_set(A, u, i, (int)((i * 2) % (1 << u)));
+    }
+    for (i = 0; i < nb; i++) {
+        if (st_nbit_get(A, u, i) != (int)((i * 2) % (1 << u))) {
             fprintf(stderr, "Failed\n");
             goto FAILED;
         }
@@ -107,12 +126,22 @@ static int unit_test_st_nbit()
             goto FAILED;
         }
     }
+
     for (i = 0; i < nb; i++) {
         st_nbit_set(A, u, i, (int)(i % (1 << u)));
     }
-
     for (i = 0; i < nb; i++) {
         if (st_nbit_get(A, u, i) != (int)(i % (1 << u))) {
+            fprintf(stderr, "Failed\n");
+            goto FAILED;
+        }
+    }
+
+    for (i = 0; i < nb; i++) {
+        st_nbit_set(A, u, i, (int)((i * 2) % (1 << u)));
+    }
+    for (i = 0; i < nb; i++) {
+        if (st_nbit_get(A, u, i) != (int)((i * 2) % (1 << u))) {
             fprintf(stderr, "Failed\n");
             goto FAILED;
         }
@@ -132,12 +161,22 @@ static int unit_test_st_nbit()
             goto FAILED;
         }
     }
+
     for (i = 0; i < nb; i++) {
         st_nbit_set(A, u, i, (int)(i % (1 << u)));
     }
-
     for (i = 0; i < nb; i++) {
         if (st_nbit_get(A, u, i) != (int)(i % (1 << u))) {
+            fprintf(stderr, "Failed\n");
+            goto FAILED;
+        }
+    }
+
+    for (i = 0; i < nb; i++) {
+        st_nbit_set(A, u, i, (int)((i * 2) % (1 << u)));
+    }
+    for (i = 0; i < nb; i++) {
+        if (st_nbit_get(A, u, i) != (int)((i * 2) % (1 << u))) {
             fprintf(stderr, "Failed\n");
             goto FAILED;
         }
@@ -157,12 +196,22 @@ static int unit_test_st_nbit()
             goto FAILED;
         }
     }
+
     for (i = 0; i < nb; i++) {
         st_nbit_set(A, u, i, (int)(i % (1 << u)));
     }
-
     for (i = 0; i < nb; i++) {
         if (st_nbit_get(A, u, i) != (int)(i % (1 << u))) {
+            fprintf(stderr, "Failed\n");
+            goto FAILED;
+        }
+    }
+
+    for (i = 0; i < nb; i++) {
+        st_nbit_set(A, u, i, (int)((i * 2) % (1 << u)));
+    }
+    for (i = 0; i < nb; i++) {
+        if (st_nbit_get(A, u, i) != (int)((i * 2) % (1 << u))) {
             fprintf(stderr, "Failed\n");
             goto FAILED;
         }
@@ -182,12 +231,22 @@ static int unit_test_st_nbit()
             goto FAILED;
         }
     }
+
     for (i = 0; i < nb; i++) {
         st_nbit_set(A, u, i, (int)(i % (1 << u)));
     }
-
     for (i = 0; i < nb; i++) {
         if (st_nbit_get(A, u, i) != (int)(i % (1 << u))) {
+            fprintf(stderr, "Failed\n");
+            goto FAILED;
+        }
+    }
+
+    for (i = 0; i < nb; i++) {
+        st_nbit_set(A, u, i, (int)((i * 2) % (1 << u)));
+    }
+    for (i = 0; i < nb; i++) {
+        if (st_nbit_get(A, u, i) != (int)((i * 2) % (1 << u))) {
             fprintf(stderr, "Failed\n");
             goto FAILED;
         }
@@ -207,12 +266,22 @@ static int unit_test_st_nbit()
             goto FAILED;
         }
     }
+
     for (i = 0; i < nb; i++) {
         st_nbit_set(A, u, i, (int)(i % (1 << u)));
     }
-
     for (i = 0; i < nb; i++) {
         if (st_nbit_get(A, u, i) != (int)(i % (1 << u))) {
+            fprintf(stderr, "Failed\n");
+            goto FAILED;
+        }
+    }
+
+    for (i = 0; i < nb; i++) {
+        st_nbit_set(A, u, i, (int)((i * 2) % (1 << u)));
+    }
+    for (i = 0; i < nb; i++) {
+        if (st_nbit_get(A, u, i) != (int)((i * 2) % (1 << u))) {
             fprintf(stderr, "Failed\n");
             goto FAILED;
         }
@@ -232,12 +301,22 @@ static int unit_test_st_nbit()
             goto FAILED;
         }
     }
+
     for (i = 0; i < nb; i++) {
         st_nbit_set(A, u, i, (int)(i % (1 << u)));
     }
-
     for (i = 0; i < nb; i++) {
         if (st_nbit_get(A, u, i) != (int)(i % (1 << u))) {
+            fprintf(stderr, "Failed\n");
+            goto FAILED;
+        }
+    }
+
+    for (i = 0; i < nb; i++) {
+        st_nbit_set(A, u, i, (int)((i * 2) % (1 << u)));
+    }
+    for (i = 0; i < nb; i++) {
+        if (st_nbit_get(A, u, i) != (int)((i * 2) % (1 << u))) {
             fprintf(stderr, "Failed\n");
             goto FAILED;
         }

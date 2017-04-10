@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2016 Wang Jian
+ * Copyright (c) 2017 Wang Jian
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,10 +39,16 @@ static inline size_t st_nbit_slot_begin(int u, size_t pos)
     return (u * pos) % CHAR_BIT;
 }
 
-static inline unsigned char st_get_nbit_in_byte(unsigned char b, int s, int n)
+static inline unsigned char st_get_nbit_val_in_byte(unsigned char b, int s, int n)
 {
     int a = CHAR_BIT - s;
     return (b & ((1 << a) - 1)) >> (a - n);
+}
+
+static inline unsigned char st_clear_nbit_in_byte(unsigned char b, int s, int n)
+{
+    int a = CHAR_BIT - s;
+    return b & ~(((1 << a) - 1) & (0xFF << (a - n)));
 }
 
 void st_nbit_set(unsigned char *a, int u, size_t pos, int val)
@@ -60,6 +66,7 @@ void st_nbit_set(unsigned char *a, int u, size_t pos, int val)
     slot += (begin + u - 1) / CHAR_BIT;
     n = (u - (CHAR_BIT - begin)) % CHAR_BIT;
     if (n > 0) {
+        a[slot] = st_clear_nbit_in_byte(a[slot], 0, n);
         a[slot] |= (v & ((1 << n) - 1)) << (CHAR_BIT - n);
         v >>= n;
         --slot;
@@ -77,6 +84,7 @@ void st_nbit_set(unsigned char *a, int u, size_t pos, int val)
 
     // set first bits to first byte
     if (n < u) {
+        a[slot] = st_clear_nbit_in_byte(a[slot], begin, u - n);
         a[slot] |= v << (CHAR_BIT - (u - n) - begin);
     }
 }
@@ -94,7 +102,7 @@ int st_nbit_get(unsigned char *a, int u, size_t pos)
     begin = st_nbit_slot_begin(u, pos);
     slot = st_nbit_slot(u, pos);
     n = min(u, CHAR_BIT - begin);
-    val |= st_get_nbit_in_byte(a[slot], begin, n);
+    val |= st_get_nbit_val_in_byte(a[slot], begin, n);
     ++slot;
 
     // get intermediate bits from intermediate bytes
@@ -106,7 +114,7 @@ int st_nbit_get(unsigned char *a, int u, size_t pos)
 
     // get last bits from last byte
     if (n < u) {
-        val = val << (u - n) | st_get_nbit_in_byte(a[slot], 0, u - n);
+        val = val << (u - n) | st_get_nbit_val_in_byte(a[slot], 0, u - n);
     }
 
     return val;
