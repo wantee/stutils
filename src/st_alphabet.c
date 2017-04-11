@@ -130,7 +130,7 @@ st_alphabet_t* st_alphabet_create(int max_label_num)
         alphabet->labels[i].label[0] = 0;
     }
 
-    if((alphabet->index_dict = st_dict_create(max_label_num,
+    if((alphabet->index_dict = st_dict_create((int)(max_label_num * 1.5),
         ST_DICT_REALLOC_NUM, NULL, index_dict_node_eq, false)) == NULL) {
         ST_WARNING("Failed to alloc index_dict");
         goto ERR;
@@ -264,7 +264,7 @@ static int st_alphabet_generate_index_dict(st_alphabet_t *alphabet)
     st_dict_t *index_dict = NULL;
     int i;
 
-    if((index_dict = st_dict_create(alphabet->label_num,
+    if((index_dict = st_dict_create((int)(alphabet->label_num * 1.5),
         ST_DICT_REALLOC_NUM, NULL, NULL, false)) == NULL) {
         ST_WARNING("Failed to alloc index_dict");
         goto ERR;
