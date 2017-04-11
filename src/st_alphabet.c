@@ -28,25 +28,19 @@
 #include "st_alphabet.h"
 #include "st_log.h"
 
-#define SYM_NUM "symbols"
-
-
 void get_sign(const char *psrc, int slen, st_dict_sign_t *sign1, st_dict_sign_t *sign2)
 {
-    *sign1=0;
-    *sign2=0;
+    *sign1 = 0;
+    *sign2 = 0;
     if( slen <= 4 ) {
-        memcpy(sign1,psrc,slen);
+        memcpy(sign1, psrc, slen);
     } else {
-        if(slen<=8)
-        {
-            memcpy(sign1,psrc,4);
-            memcpy(sign2,psrc+4,slen-4);
-        }
-        else
-        {
-            *sign1 = MurmurHash2 ( psrc, slen / 2, 1 );
-            *sign2 = MurmurHash2 ( psrc + slen / 2, slen - slen / 2, 2 );
+        if(slen <= 8) {
+            memcpy(sign1, psrc,4);
+            memcpy(sign2, psrc + 4, slen - 4);
+        } else {
+            *sign1 = MurmurHash2(psrc, slen / 2, 1);
+            *sign2 = MurmurHash2(psrc + slen / 2, slen - slen / 2, 2);
         }
     }
 }
@@ -57,17 +51,9 @@ void st_alphabet_destroy(st_alphabet_t *alphabet)
         return;
     }
 
-    if(alphabet->labels) {
-        safe_st_free(alphabet->labels);
-    }
+    safe_st_free(alphabet->labels);
 
-    if(alphabet->is_aux) {
-        safe_st_free(alphabet->is_aux);
-    }
-
-    if(alphabet->index_dict) {
-        safe_st_dict_destroy(alphabet->index_dict);
-    }
+    safe_st_dict_destroy(alphabet->index_dict);
 }
 
 static st_alphabet_t* st_alphabet_alloc()
@@ -75,16 +61,13 @@ static st_alphabet_t* st_alphabet_alloc()
     st_alphabet_t *alphabet;
 
     alphabet = (st_alphabet_t *)st_malloc(sizeof(st_alphabet_t));
-    if(alphabet == NULL)
-    {
+    if(alphabet == NULL) {
         ST_WARNING("Failed to alloc alphabet.");
         return NULL;
     }
 
     alphabet->labels = NULL;
-    alphabet->is_aux = NULL;
     alphabet->label_num = 0;
-    alphabet->aux_num = 0;
     alphabet->index_dict = NULL;
 
     return alphabet;
@@ -129,8 +112,7 @@ st_alphabet_t* st_alphabet_create(int max_label_num)
     ST_CHECK_PARAM(max_label_num <= 0, NULL);
 
     alphabet = st_alphabet_alloc();
-    if(alphabet == NULL)
-    {
+    if(alphabet == NULL) {
         ST_WARNING("Failed to alphabet_alloc.");
         goto ERR;
     }
@@ -138,32 +120,21 @@ st_alphabet_t* st_alphabet_create(int max_label_num)
     alphabet->max_label_num = max_label_num;
     alphabet->labels = (st_label_t *)
         st_malloc(max_label_num * sizeof(st_label_t));
-    if(alphabet->labels == NULL)
-    {
+    if(alphabet->labels == NULL) {
         ST_WARNING("Failed to allocate memory for labels.");
         goto ERR;
     }
 
-    for(i = 0; i < max_label_num; i++)
-    {
+    for(i = 0; i < max_label_num; i++) {
         alphabet->labels[i].symid = -1;
         alphabet->labels[i].label[0] = 0;
     }
 
     if((alphabet->index_dict = st_dict_create(max_label_num,
-        ST_DICT_REALLOC_NUM, NULL, index_dict_node_eq, false)) == NULL)
-    {
+        ST_DICT_REALLOC_NUM, NULL, index_dict_node_eq, false)) == NULL) {
         ST_WARNING("Failed to alloc index_dict");
         goto ERR;
     }
-
-    alphabet->is_aux = (bool *)st_malloc(max_label_num * sizeof(bool));
-    if(alphabet->is_aux == NULL)
-    {
-        ST_WARNING("Failed to allocate memory for is_aux.");
-        goto ERR;
-    }
-    memset(alphabet->is_aux, 0, max_label_num * sizeof(bool));
 
     return alphabet;
 
@@ -177,13 +148,12 @@ int st_alphabet_add_label(st_alphabet_t *alphabet, const char *label_)
     st_dict_node_t snode;
     int ret = 0;
 
-    if((ret = st_alphabet_get_index(alphabet, label_)) >= 0)
-    {
+    ret = st_alphabet_get_index(alphabet, label_);
+    if(ret >= 0) {
         return ret;
     }
 
-    if(alphabet->max_label_num <= alphabet->label_num)
-    {
+    if(alphabet->max_label_num <= alphabet->label_num) {
         ST_WARNING("label overflow[%d/%d]", alphabet->label_num,
                 alphabet->max_label_num);
         return -1;
@@ -196,16 +166,9 @@ int st_alphabet_add_label(st_alphabet_t *alphabet, const char *label_)
     get_sign((char *)label_, strlen(label_), &snode.sign1, &snode.sign2);
     snode.uint1 = alphabet->label_num;
 
-    if(st_dict_add_no_seek(alphabet->index_dict, &snode) < 0)
-    {
+    if(st_dict_add_no_seek(alphabet->index_dict, &snode) < 0) {
         ST_WARNING("Failed to add label[%s] into dict", label_);
         return -1;
-    }
-
-    if(label_[0] == '#')
-    {
-        alphabet->is_aux[alphabet->label_num] = true;
-        alphabet->aux_num++;
     }
 
     alphabet->label_num++;
@@ -238,8 +201,7 @@ int st_alphabet_get_index(st_alphabet_t *alphabet, const char *label)
     arg.alphabet = alphabet;
     arg.label = label;
     get_sign((char *)label, strlen(label), &snode.sign1, &snode.sign2);
-    if(st_dict_seek(alphabet->index_dict, &snode, &arg) < 0)
-    {
+    if(st_dict_seek(alphabet->index_dict, &snode, &arg) < 0) {
         return -1;
     }
 
@@ -258,12 +220,6 @@ int st_alphabet_save_bin(st_alphabet_t *alphabet, FILE *fp)
         return -1;
     }
 
-    ret = fwrite(&alphabet->aux_num, sizeof(int), 1, fp);
-    if(ret != 1) {
-        ST_WARNING("Failed to write aux_num");
-        return -1;
-    }
-
     ret = fwrite(alphabet->labels, sizeof(st_label_t),
         alphabet->label_num, fp);
     if(ret != alphabet->label_num) {
@@ -271,16 +227,12 @@ int st_alphabet_save_bin(st_alphabet_t *alphabet, FILE *fp)
         return -1;
     }
 
-    ret = fwrite(alphabet->is_aux, sizeof(bool), alphabet->label_num, fp);
-    if(ret != alphabet->label_num) {
-        ST_WARNING("Failed to write is_aux");
-        return -1;
-    }
-
+#ifdef _ST_ALPHABET_SAVE_DICT_
     if(st_dict_save(alphabet->index_dict, fp) < 0) {
         ST_WARNING("Failed to save index_dict");
         return -1;
     }
+#endif
 
     return 0;
 }
@@ -292,10 +244,6 @@ int st_alphabet_save_txt(st_alphabet_t *alphabet, FILE *fp)
 
     ST_CHECK_PARAM(alphabet == NULL || fp == NULL, -1);
 
-    if (fprintf(fp, SYM_NUM " = %d\n", alphabet->label_num) < 0) {
-        ST_WARNING("Failed to fprintf header.");
-        return -1;
-    }
     labels = alphabet->labels;
     for(i = 0; i < alphabet->label_num; i++) {
         if(labels[i].symid != -1) {
@@ -310,103 +258,89 @@ int st_alphabet_save_txt(st_alphabet_t *alphabet, FILE *fp)
     return 0;
 }
 
-int st_alphabet_load_txt(st_alphabet_t *alphabet, FILE *fp)
+static int st_alphabet_generate_index_dict(st_alphabet_t *alphabet)
 {
-    char line[MAX_LINE_LEN];
-    char syms[MAX_SYM_LEN] ;
     st_dict_node_t snode;
-    char *pstr = NULL;
-    int id;
+    st_dict_t *index_dict = NULL;
     int i;
 
-    st_label_t *labels;
-    bool *is_aux;
-    st_dict_t *index_dict = NULL;
-    int label_num;
-    int aux_num = 0;
-
-    ST_CHECK_PARAM(alphabet == NULL || fp == NULL, -1);
-
-    if(fgets(line, MAX_LINE_LEN, fp) == NULL)
-    {
-        ST_WARNING("Empty file.");
-        goto ERR;
-    }
-    pstr = strchr(line, '=');
-    if(pstr == NULL || strncmp(line, SYM_NUM, strlen(SYM_NUM)) != 0)
-    {
-        ST_WARNING("Wrong esym format: no symbols num.");
-        goto ERR;
-    }
-    label_num = atoi(pstr+1);
-    if(label_num <= 0)
-    {
-        ST_WARNING("Wrong esym format: wrong symbols num[%d].", label_num);
-        goto ERR;
-    }
-
-    labels = (st_label_t *)st_malloc(label_num * sizeof(st_label_t));
-    if(labels == NULL)
-    {
-        ST_WARNING("Failed to allocate memory for labels.");
-        goto ERR;
-    }
-
-    is_aux = (bool *)st_malloc(label_num * sizeof(bool));
-    if(is_aux == NULL)
-    {
-        ST_WARNING("Failed to allocate memory for is_aux.");
-        goto ERR;
-    }
-
-    for(i = 0; i < label_num; i++)
-    {
-        labels[i].symid = -1;
-        labels[i].label[0] = 0;
-        is_aux[i] = false;
-    }
-
-    if((index_dict = st_dict_create(label_num,
-        ST_DICT_REALLOC_NUM, NULL, NULL, false)) == NULL)
-    {
+    if((index_dict = st_dict_create(alphabet->label_num,
+        ST_DICT_REALLOC_NUM, NULL, NULL, false)) == NULL) {
         ST_WARNING("Failed to alloc index_dict");
         goto ERR;
     }
 
+    for(i = 0; i < alphabet->label_num; i++) {
+        get_sign(alphabet->labels[i].label, strlen(alphabet->labels[i].label),
+                &snode.sign1, &snode.sign2);
+        snode.uint1 = (uint)i;
+        if (st_dict_add(index_dict, &snode, NULL) < 0) {
+            ST_WARNING("Failed to st_dict_add.");
+            goto ERR;
+        }
+    }
+
+    alphabet->index_dict = index_dict;
+    return 0;
+
+ERR:
+    safe_st_dict_destroy(index_dict);
+    return -1;
+}
+
+int st_alphabet_load_txt(st_alphabet_t *alphabet, FILE *fp)
+{
+    char line[MAX_LINE_LEN];
+    char syms[MAX_SYM_LEN] ;
+    int id;
+    int i;
+
+    st_label_t *labels;
+    int label_num;
+
+    ST_CHECK_PARAM(alphabet == NULL || fp == NULL, -1);
+
+    label_num = 0;
+    while(fgets(line, MAX_LINE_LEN, fp) != NULL) {
+        ++label_num;
+    }
+
+    if (label_num <= 0) {
+        return 0;
+    }
+
+    rewind(fp);
+
+    labels = (st_label_t *)st_malloc(label_num * sizeof(st_label_t));
+    if(labels == NULL) {
+        ST_WARNING("Failed to allocate memory for labels.");
+        return -1;
+    }
+
+    for(i = 0; i < label_num; i++) {
+        labels[i].symid = -1;
+        labels[i].label[0] = 0;
+    }
+
     i = 0;
-    while(fgets(line, MAX_LINE_LEN, fp))
-    {
-        if(sscanf(line, "%s %d", syms, &id) != 2)
-        {
+    while(fgets(line, MAX_LINE_LEN, fp)) {
+        if(sscanf(line, "%s %d", syms, &id) != 2) {
             continue;
         }
 
-        if(id >= label_num)
-        {
+        if(id >= label_num) {
             ST_WARNING("Wrong id[%d]>=label_num[%d].", id, label_num);
-            goto ERR;
+            return -1;
         }
 
-        if(labels[id].symid != -1)
-        {
-            ST_WARNING("Replicated symbol [%d:%s].", id, syms);
-            goto ERR;
+        if(labels[id].symid != -1) {
+            ST_WARNING("Duplicated symbol [%d:%s].", id, syms);
+            return -1;
         }
 
         strncpy(labels[id].label, syms, MAX_SYM_LEN);
         labels[id].label[MAX_SYM_LEN - 1] = 0;
         labels[id].symid = id;
-
-        get_sign(labels[id].label, strlen(labels[id].label),
-                &snode.sign1, &snode.sign2);
-        snode.uint1 = (uint)id;
-        st_dict_add(index_dict, &snode, NULL);
-
-        if(syms[0] == '#')
-        {
-            is_aux[id] = true;
-            aux_num++;
-        }
 
         i++;
         if (i >= label_num) {
@@ -414,27 +348,24 @@ int st_alphabet_load_txt(st_alphabet_t *alphabet, FILE *fp)
         }
     }
 
-    for(i = 0; i < label_num; i++)
-    {
-        if(labels[i].symid == -1)
-        {
+    for(i = 0; i < label_num; i++) {
+        if(labels[i].symid == -1) {
             ST_WARNING("Empty symbol for id[%d]", i);
-            goto ERR;
+            return -1;
         }
     }
 
     alphabet->labels = labels;
-    alphabet->is_aux = is_aux;
     alphabet->max_label_num = label_num;
     alphabet->label_num = label_num;
-    alphabet->aux_num = aux_num;
-    alphabet->index_dict = index_dict;
+
+    if (st_alphabet_generate_index_dict(alphabet) < 0) {
+        ST_WARNING("Failed to st_alphabet_generate_index_dict.");
+        return -1;
+    }
 
     return 0;
 
-ERR:
-    safe_st_dict_destroy(index_dict);
-    return -1;
 }
 
 st_alphabet_t* st_alphabet_load_from_txt(FILE *fp)
@@ -443,15 +374,13 @@ st_alphabet_t* st_alphabet_load_from_txt(FILE *fp)
 
     ST_CHECK_PARAM(fp == NULL, NULL);
 
-    if((alphabet = st_alphabet_alloc()) == NULL)
-    {
+    if((alphabet = st_alphabet_alloc()) == NULL) {
         ST_WARNING("Failed to st_alphabet_alloc.");
         return NULL;
     }
 
-    if(st_alphabet_load_txt(alphabet, fp) < 0)
-    {
-        ST_WARNING("Failed to st_alphabet_load_txt_fp.");
+    if(st_alphabet_load_txt(alphabet, fp) < 0) {
+        ST_WARNING("Failed to st_alphabet_load_txt.");
         goto ERR;
 
     }
@@ -469,55 +398,36 @@ static int st_alphabet_load_bin(st_alphabet_t *alphabet, FILE *fp)
     ST_CHECK_PARAM(alphabet == NULL || fp == NULL, -1);
 
     ret = fread(&alphabet->label_num, sizeof(int), 1, fp);
-    if(ret != 1)
-    {
+    if(ret != 1) {
         ST_WARNING("Failed to read label_num");
         return -1;
     }
     alphabet->max_label_num = alphabet->label_num;
 
-    ret = fread(&alphabet->aux_num, sizeof(int), 1, fp);
-    if(ret != 1)
-    {
-        ST_WARNING("Failed to read aux_num");
-        return -1;
-    }
-
     alphabet->labels = (st_label_t *)
         st_malloc(sizeof(st_label_t)*alphabet->label_num);
-    if(alphabet->labels == NULL)
-    {
+    if(alphabet->labels == NULL) {
         ST_WARNING("Failed to st_malloc labels. [%d]", alphabet->label_num);
         return -1;
     }
 
-    alphabet->is_aux = (bool *)st_malloc(sizeof(bool)*alphabet->label_num);
-    if(alphabet->is_aux == NULL)
-    {
-        ST_WARNING("Failed to st_malloc is_aux.");
-        return -1;
-    }
-
-    ret = fread(alphabet->labels, sizeof(st_label_t),
-        alphabet->label_num, fp);
-    if(ret != alphabet->label_num)
-    {
+    ret = fread(alphabet->labels, sizeof(st_label_t), alphabet->label_num, fp);
+    if(ret != alphabet->label_num) {
         ST_WARNING("Failed to read labels");
         return -1;
     }
 
-    ret = fread(alphabet->is_aux, sizeof(bool), alphabet->label_num, fp);
-    if(ret != alphabet->label_num)
-    {
-        ST_WARNING("Failed to read is_aux");
-        return -1;
-    }
-
-    if((alphabet->index_dict = st_dict_load_from_bin(fp)) == NULL)
-    {
+#ifdef _ST_ALPHABET_SAVE_DICT_
+    if((alphabet->index_dict = st_dict_load_from_bin(fp)) == NULL) {
         ST_WARNING("Failed to load index_dict");
         return -1;
     }
+#else
+    if (st_alphabet_generate_index_dict(alphabet) < 0) {
+        ST_WARNING("Failed to st_alphabet_generate_index_dict.");
+        return -1;
+    }
+#endif
 
     return 0;
 }
@@ -528,15 +438,13 @@ st_alphabet_t* st_alphabet_load_from_bin(FILE *fp)
 
     ST_CHECK_PARAM(fp == NULL, NULL);
 
-    if((alphabet = st_alphabet_alloc()) == NULL)
-    {
+    if((alphabet = st_alphabet_alloc()) == NULL) {
         ST_WARNING("Failed to st_alphabet_alloc.");
         return NULL;
     }
 
-    if(st_alphabet_load_bin(alphabet, fp) < 0)
-    {
-        ST_WARNING("Failed to st_alphabet_load_bin_fp.");
+    if(st_alphabet_load_bin(alphabet, fp) < 0) {
+        ST_WARNING("Failed to st_alphabet_load_bin.");
         goto ERR;
 
     }
@@ -561,7 +469,6 @@ st_alphabet_t* st_alphabet_dup(st_alphabet_t *a)
 
     alphabet->max_label_num = a->max_label_num;
     alphabet->label_num = a->label_num;
-    alphabet->aux_num = a->aux_num;
 
     alphabet->labels = (st_label_t *)
         st_malloc(a->max_label_num * sizeof(st_label_t));
@@ -578,13 +485,6 @@ st_alphabet_t* st_alphabet_dup(st_alphabet_t *a)
         ST_WARNING("Failed to st_dict_dup.");
         goto ERR;
     }
-
-    alphabet->is_aux = (bool *)st_malloc(a->max_label_num * sizeof(bool));
-    if(alphabet->is_aux == NULL) {
-        ST_WARNING("Failed to allocate memory for is_aux.");
-        goto ERR;
-    }
-    memcpy(alphabet->is_aux, a->is_aux, a->max_label_num*sizeof(bool));
 
     return alphabet;
 

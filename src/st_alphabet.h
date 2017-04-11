@@ -47,13 +47,10 @@ typedef struct _st_alphabet_t
     int max_label_num;
     int label_num;
 
-    bool *is_aux;
-    int aux_num;
-
     st_dict_t *index_dict;
 } st_alphabet_t;
 
-st_alphabet_t* st_alphabet_load_from_txt(FILE *esym_fp);
+st_alphabet_t* st_alphabet_load_from_txt(FILE *fp);
 st_alphabet_t* st_alphabet_load_from_bin(FILE *fp);
 
 int st_alphabet_save_bin(st_alphabet_t *alphabet, FILE *fp);
