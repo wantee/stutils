@@ -50,8 +50,9 @@ typedef struct _st_alphabet_t
     st_dict_t *index_dict;
 } st_alphabet_t;
 
-st_alphabet_t* st_alphabet_load_from_txt(FILE *fp);
+st_alphabet_t* st_alphabet_load_from_txt(FILE *fp, int label_num);
 st_alphabet_t* st_alphabet_load_from_bin(FILE *fp);
+st_alphabet_t* st_alphabet_load_from_txt_file(const char *file);
 
 int st_alphabet_save_bin(st_alphabet_t *alphabet, FILE *fp);
 int st_alphabet_save_txt(st_alphabet_t *alphabet, FILE *fp);
