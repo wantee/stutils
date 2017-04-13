@@ -34,6 +34,9 @@
 
 FILE* st_fopen(const char *name, const char *mode)
 {
+    char cmd[MAX_NAME_LEN];
+    char m[5];
+
     ST_CHECK_PARAM(name == NULL || mode == NULL, NULL);
 
     if (name[0] == '-' && name[1] == '\0') {
@@ -45,8 +48,20 @@ FILE* st_fopen(const char *name, const char *mode)
             ST_WARNING("Unkown mode[%s].", mode);
             return NULL;
         }
-    } else if (name[0] == '|') {
-        return popen(name, mode);
+    } else if (name[0] == '|' && (mode[0] == 'w' || mode[0] == 'a')) {
+        m[0] = 'w';
+        m[1] = '\0';
+        return popen(name + 1, m);
+    } else if (name[strlen(name) - 1] == '|' && mode[0] == 'r') {
+        if (strlen(name) >= MAX_NAME_LEN) {
+            ST_WARNING("Too long name[%s]", name);
+            return NULL;
+        }
+        strcpy(cmd, name);
+        cmd[strlen(name) - 1] = '\0';
+        m[0] = 'r';
+        m[1] = '\0';
+        return popen(cmd, m);
     } else {
         return fopen(name, mode);
     }
@@ -184,7 +199,7 @@ off_t st_fsize(const char *filename)
     if (stat(filename, &st) == 0)
         return st.st_size;
 
-    ST_WARNING("Cannot determine size of %s: %s\n",
+    ST_WARNING("Cannot determine size of '%s': %s\n",
             filename, strerror(errno));
 
     return -1;
