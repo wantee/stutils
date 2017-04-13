@@ -199,9 +199,6 @@ off_t st_fsize(const char *filename)
     if (stat(filename, &st) == 0)
         return st.st_size;
 
-    ST_WARNING("Cannot determine size of '%s': %s\n",
-            filename, strerror(errno));
-
     return -1;
 }
 
