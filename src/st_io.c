@@ -30,6 +30,7 @@
 #include <stutils/st_macro.h>
 #include "st_log.h"
 #include "st_mem.h"
+#include "st_popen.h"
 #include "st_io.h"
 
 FILE* st_fopen(const char *name, const char *mode)
@@ -51,7 +52,7 @@ FILE* st_fopen(const char *name, const char *mode)
     } else if (name[0] == '|' && (mode[0] == 'w' || mode[0] == 'a')) {
         m[0] = 'w';
         m[1] = '\0';
-        return popen(name + 1, m);
+        return st_popen(name + 1, m);
     } else if (name[strlen(name) - 1] == '|' && mode[0] == 'r') {
         if (strlen(name) >= MAX_NAME_LEN) {
             ST_WARNING("Too long name[%s]", name);
@@ -61,7 +62,7 @@ FILE* st_fopen(const char *name, const char *mode)
         cmd[strlen(name) - 1] = '\0';
         m[0] = 'r';
         m[1] = '\0';
-        return popen(cmd, m);
+        return st_popen(cmd, m);
     } else {
         return fopen(name, mode);
     }
@@ -81,7 +82,7 @@ void st_fclose(FILE *fp)
     }
 
     if ((s.st_mode & S_IFMT) == S_IFIFO) {
-        pclose(fp);
+        st_pclose(fp);
     } else {
         fclose(fp);
     }

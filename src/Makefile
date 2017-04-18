@@ -14,6 +14,7 @@ INCS = st_dict.h \
        st_stack.h \
        st_heap.h \
        st_net.h \
+       st_popen.h \
        st_io.h \
        st_opt.h \
        st_semaphore.h \
@@ -34,6 +35,7 @@ SRCS = st_dict.c \
        st_stack.c \
        st_heap.c \
        st_net.c \
+       st_popen.c \
        st_io.c \
        st_opt.c \
        st_semaphore.c \
