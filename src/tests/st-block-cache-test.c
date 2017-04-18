@@ -28,7 +28,7 @@
 #include "st_block_cache.h"
 
 #define N 5
-static int unit_test_block_cache(int realloc_count)
+static int unit_test_block_cache()
 {
     st_block_cache_t *bcache = NULL;
     int ncase = 1;
@@ -37,11 +37,10 @@ static int unit_test_block_cache(int realloc_count)
     int i, bid;
     int *data;
 
-    fprintf(stderr, "  Testing st_block_cache realloc_count[%d]...\n",
-            realloc_count);
+    fprintf(stderr, "  Testing st_block_cache...\n");
     /*****************************************/
     fprintf(stderr, "    Case %d...", ncase++);
-    bcache = st_block_cache_create(sizeof(int), N, realloc_count);
+    bcache = st_block_cache_create(sizeof(int), N);
     assert(bcache != NULL);
     for (i = 0; i < N; i++) {
         bid = -1;
@@ -82,24 +81,13 @@ static int unit_test_block_cache(int realloc_count)
     fprintf(stderr, "    Case %d...", ncase++);
     bid = -1;
     data = st_block_cache_fetch(bcache, &bid);
-    if (realloc_count > 0) {
-        if (data == NULL) {
-            fprintf(stderr, "Failed\n");
-            goto ERR;
-        }
-        if(st_block_cache_capacity(bcache) != N + realloc_count) {
-            fprintf(stderr, "Failed\n");
-            goto ERR;
-        }
-    } else {
-        if (data != NULL) {
-            fprintf(stderr, "Failed\n");
-            goto ERR;
-        }
-        if(st_block_cache_capacity(bcache) != N) {
-            fprintf(stderr, "Failed\n");
-            goto ERR;
-        }
+    if (data == NULL) {
+        fprintf(stderr, "Failed\n");
+        goto ERR;
+    }
+    if(st_block_cache_capacity(bcache) != N + N) {
+        fprintf(stderr, "Failed\n");
+        goto ERR;
     }
 
     fprintf(stderr, "Success\n");
@@ -123,16 +111,9 @@ static int unit_test_block_cache(int realloc_count)
             goto ERR;
         }
     }
-    if (realloc_count > 0) {
-        if(st_block_cache_size(bcache) != 1) {
-            fprintf(stderr, "Failed\n");
-            goto ERR;
-        }
-    } else {
-        if(st_block_cache_size(bcache) != 0) {
-            fprintf(stderr, "Failed\n");
-            goto ERR;
-        }
+    if(st_block_cache_size(bcache) != 1) {
+        fprintf(stderr, "Failed\n");
+        goto ERR;
     }
     fprintf(stderr, "Success\n");
 
@@ -148,11 +129,7 @@ static int run_all_tests()
 {
     int ret = 0;
 
-    if (unit_test_block_cache(0) != 0) {
-        ret = -1;
-    }
-
-    if (unit_test_block_cache(3) != 0) {
+    if (unit_test_block_cache(5) != 0) {
         ret = -1;
     }
 

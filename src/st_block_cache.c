@@ -27,13 +27,12 @@
 #include "st_log.h"
 #include "st_block_cache.h"
 
-st_block_cache_t* st_block_cache_create(size_t block_size,
-        bcache_id_t init_count, bcache_id_t realloc_count)
+st_block_cache_t* st_block_cache_create(size_t block_size, bcache_id_t count)
 {
     st_block_cache_t *bcache = NULL;
     bcache_id_t i;
 
-    ST_CHECK_PARAM(block_size <= 0 || init_count <= 0, NULL);
+    ST_CHECK_PARAM(block_size <= 0 || count <= 0, NULL);
 
     bcache = (st_block_cache_t *)st_malloc(sizeof(st_block_cache_t));
     if (bcache == NULL) {
@@ -43,31 +42,37 @@ st_block_cache_t* st_block_cache_create(size_t block_size,
     memset(bcache, 0, sizeof(st_block_cache_t));
 
     bcache->block_size = block_size;
-    bcache->capacity = init_count;
-    bcache->realloc_count = realloc_count;
+    bcache->count = count;
 
-    bcache->data = st_malloc(block_size * init_count);
+    bcache->data = (void **)st_malloc(sizeof(void *));
     if (bcache->data == NULL) {
-        ST_WARNING("Failed to st_malloc data.");
+        ST_WARNING("Failed to st_malloc data buffer pool.");
+        goto ERR;
+    }
+    bcache->num_pools = 1;
+
+    bcache->data[0] = (void *)st_malloc(block_size * count);
+    if (bcache->data[0] == NULL) {
+        ST_WARNING("Failed to st_malloc data buffer.");
         goto ERR;
     }
 
-    bcache->ref_counts = (bcache_id_t *)st_malloc(sizeof(bcache_id_t) * init_count);
+    bcache->ref_counts = (bcache_id_t *)st_malloc(sizeof(bcache_id_t) * count);
     if (bcache->ref_counts == NULL) {
         ST_WARNING("Failed to st_malloc ref_counts.");
         goto ERR;
     }
-    memset(bcache->ref_counts, 0, sizeof(bcache_id_t) * init_count);
+    memset(bcache->ref_counts, 0, sizeof(bcache_id_t) * count);
 
-    bcache->free_blocks = (bcache_id_t *)st_malloc(sizeof(bcache_id_t) * init_count);
+    bcache->free_blocks = (bcache_id_t *)st_malloc(sizeof(bcache_id_t) * count);
     if (bcache->free_blocks == NULL) {
         ST_WARNING("Failed to st_malloc free_blocks.");
         goto ERR;
     }
-    for (i = 0; i < init_count; i++) {
+    for (i = 0; i < count; i++) {
         bcache->free_blocks[i] = i;
     }
-    bcache->num_free_blocks = init_count;
+    bcache->num_free_blocks = count;
 
     if (pthread_mutex_init(&bcache->lock, NULL) != 0) {
         ST_WARNING("Failed to pthread_mutex_init lock.");
@@ -82,17 +87,23 @@ ERR:
 
 void st_block_cache_destroy(st_block_cache_t* bcache)
 {
+    size_t i;
+
     if (bcache == NULL) {
         return;
     }
 
-    safe_st_free(bcache->data);
-    safe_st_free(bcache->ref_counts);
-
-    bcache->capacity = 0;
+    if (bcache->data != NULL) {
+        for (i = 0; i < bcache->num_pools; i++) {
+            safe_st_free(bcache->data[i]);
+        }
+        safe_st_free(bcache->data);
+    }
+    bcache->num_pools = 0;
     bcache->block_size = 0;
-    bcache->realloc_count = 0;
+    bcache->count = 0;
 
+    safe_st_free(bcache->ref_counts);
     safe_st_free(bcache->free_blocks);
     bcache->num_free_blocks = 0;
 
@@ -101,24 +112,27 @@ void st_block_cache_destroy(st_block_cache_t* bcache)
 
 bcache_id_t st_block_cache_capacity(st_block_cache_t* bcache)
 {
-    return bcache->capacity;
+    return bcache->num_pools * bcache->count;
 }
 
 bcache_id_t st_block_cache_size(st_block_cache_t* bcache)
 {
-    return bcache->capacity - bcache->num_free_blocks;
+    return st_block_cache_capacity(bcache) - bcache->num_free_blocks;
 }
 
 int st_block_cache_clear(st_block_cache_t* bcache)
 {
+    bcache_id_t capacity;
     bcache_id_t i;
 
-    memset(bcache->ref_counts, 0, sizeof(bcache_id_t) * bcache->capacity);
+    capacity = st_block_cache_capacity(bcache);
 
-    for (i = 0; i < bcache->capacity; i++) {
+    memset(bcache->ref_counts, 0, sizeof(bcache_id_t) * capacity);
+
+    for (i = 0; i < capacity; i++) {
         bcache->free_blocks[i] = i;
     }
-    bcache->num_free_blocks = bcache->capacity;
+    bcache->num_free_blocks = capacity;
 
     return 0;
 }
@@ -126,41 +140,46 @@ int st_block_cache_clear(st_block_cache_t* bcache)
 // should hold the lock outside this function
 static bcache_id_t st_bcache_get_free_block(st_block_cache_t *bcache)
 {
+    bcache_id_t cur_capacity;
     bcache_id_t i;
 
     if (bcache->num_free_blocks <= 0) {
-        if (bcache->realloc_count <= 0) {
-            ST_WARNING("block cache overflow.");
-            return -1;
-        }
+        cur_capacity = st_block_cache_capacity(bcache);
 
-        bcache->data = st_realloc(bcache->data, bcache->block_size
-                * (bcache->capacity + bcache->realloc_count));
+        bcache->data = (void **)st_realloc(bcache->data, sizeof(void *)
+                * (bcache->num_pools + 1));
         if (bcache->data == NULL) {
             ST_WARNING("Failed to st_realloc data.");
             return -1;
         }
+        bcache->num_pools += 1;
+
+        bcache->data[bcache->num_pools - 1] = (void *)st_malloc(
+                bcache->block_size * bcache->count);
+        if (bcache->data[bcache->num_pools - 1] == NULL) {
+            ST_WARNING("Failed to st_malloc data buffer.");
+            return -1;
+        }
 
         bcache->ref_counts = (bcache_id_t *)st_realloc(bcache->ref_counts,
-            sizeof(bcache_id_t) * (bcache->capacity + bcache->realloc_count));
+            sizeof(bcache_id_t) * (cur_capacity + bcache->count));
         if (bcache->ref_counts == NULL) {
             ST_WARNING("Failed to st_realloc ref_counts.");
             return -1;
         }
-        memset(bcache->ref_counts + bcache->capacity, 0,
-                sizeof(bcache_id_t) * bcache->realloc_count);
+        memset(bcache->ref_counts + cur_capacity, 0,
+                sizeof(bcache_id_t) * bcache->count);
 
         bcache->free_blocks = (bcache_id_t *)st_realloc(bcache->free_blocks,
-            sizeof(bcache_id_t) * (bcache->capacity + bcache->realloc_count));
+            sizeof(bcache_id_t) * (cur_capacity + bcache->count));
         if (bcache->free_blocks == NULL) {
             ST_WARNING("Failed to st_realloc free_blocks.");
             return -1;
         }
-        for (i = 0; i < bcache->realloc_count; i++) {
-            bcache->free_blocks[i] = i + bcache->capacity;
+        for (i = 0; i < bcache->count; i++) {
+            bcache->free_blocks[i] = i + cur_capacity;
         }
-        bcache->num_free_blocks = bcache->realloc_count;
-        bcache->capacity += bcache->realloc_count;
+        bcache->num_free_blocks = bcache->count;
     }
 
     return bcache->free_blocks[--bcache->num_free_blocks];
@@ -175,16 +194,32 @@ static int st_bcache_return_block(st_block_cache_t *bcache,
     return 0;
 }
 
+// should hold the lock outside this function
+static void* st_bcache_get_block(st_block_cache_t *bcache,
+        bcache_id_t block_id)
+{
+    bcache_id_t p, i;
+
+    p = block_id / bcache->count;
+    i = block_id % bcache->count;
+
+    return bcache->data[p] + (bcache->block_size * i);
+}
+
 void* st_block_cache_fetch(st_block_cache_t* bcache, bcache_id_t *block_id)
 {
     void *ret;
 
     ST_CHECK_PARAM(bcache == NULL || block_id == NULL
-            || *block_id >= bcache->capacity, NULL);
+            , NULL);
 
     if (pthread_mutex_lock(&bcache->lock) != 0) {
         ST_WARNING("Failed to pthread_mutex_lock lock.");
         return NULL;
+    }
+    if (*block_id >= st_block_cache_capacity(bcache)) {
+        ST_WARNING("Invalid block_id["BCACHE_ID_FMT".", *block_id);
+        goto ERR;
     }
 
     if (*block_id < 0) {
@@ -197,7 +232,8 @@ void* st_block_cache_fetch(st_block_cache_t* bcache, bcache_id_t *block_id)
 
     bcache->ref_counts[*block_id]++;
 
-    ret = bcache->data + (bcache->block_size * (*block_id));
+    ret = st_bcache_get_block(bcache, *block_id);
+
     if (pthread_mutex_unlock(&bcache->lock) != 0) {
         ST_WARNING("Failed to pthread_mutex_unlock lock.");
         return NULL;
@@ -215,12 +251,15 @@ ERR:
 
 int st_block_cache_return(st_block_cache_t* bcache, bcache_id_t block_id)
 {
-    ST_CHECK_PARAM(bcache == NULL || block_id < 0
-            || block_id >= bcache->capacity, -1);
+    ST_CHECK_PARAM(bcache == NULL || block_id < 0, -1);
 
     if (pthread_mutex_lock(&bcache->lock) != 0) {
         ST_WARNING("Failed to pthread_mutex_lock lock.");
         return -1;
+    }
+    if (block_id >= st_block_cache_capacity(bcache)) {
+        ST_WARNING("Invalid block_id["BCACHE_ID_FMT".", block_id);
+        goto ERR;
     }
 
     if (bcache->ref_counts[block_id] <= 0) {
@@ -254,13 +293,39 @@ ERR:
 
 void* st_block_cache_read(st_block_cache_t* bcache, bcache_id_t block_id)
 {
-    ST_CHECK_PARAM(bcache == NULL || block_id < 0
-            || block_id >= bcache->capacity, NULL);
+    void *ret;
 
-    if (bcache->ref_counts[block_id] <= 0) {
-        ST_WARNING("block[%d] not in use.", block_id);
+    ST_CHECK_PARAM(bcache == NULL || block_id < 0, NULL);
+
+    if (pthread_mutex_lock(&bcache->lock) != 0) {
+        ST_WARNING("Failed to pthread_mutex_lock lock.");
         return NULL;
     }
 
-    return bcache->data + bcache->block_size * block_id;
+    if (block_id >= st_block_cache_capacity(bcache)) {
+        ST_WARNING("Invalid block_id["BCACHE_ID_FMT".", block_id);
+        goto ERR;
+    }
+
+    if (bcache->ref_counts[block_id] <= 0) {
+        ST_WARNING("block[%d] not in use.", block_id);
+        goto ERR;
+    }
+
+    ret = st_bcache_get_block(bcache, block_id);
+
+    if (pthread_mutex_unlock(&bcache->lock) != 0) {
+        ST_WARNING("Failed to pthread_mutex_unlock lock.");
+        return NULL;
+    }
+
+    return ret;
+
+ERR:
+    if (pthread_mutex_unlock(&bcache->lock) != 0) {
+        ST_WARNING("Failed to pthread_mutex_unlock lock.");
+        return NULL;
+    }
+
+    return NULL;
 }

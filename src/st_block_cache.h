@@ -42,6 +42,7 @@ extern "C" {
 
 // bcache_id_t must be signed type
 #define bcache_id_t int32_t
+#define BCACHE_ID_FMT "%d"
 
 /**
  * block memory cache
@@ -49,13 +50,12 @@ extern "C" {
  */
 typedef struct _st_block_cache_t_
 {
-    void *data; /**< data buffer. */
-    bcache_id_t *ref_counts; /**< ref_count for blocks. */
+    void **data; /**< data buffer pool. */
+    size_t num_pools; /**< numberof data buffer pools. */
     size_t block_size; /**< size of block. */
-    bcache_id_t count; /**< used count of blocks. */
-    bcache_id_t capacity; /**< capacity of blocks. */
-    bcache_id_t realloc_count; /**< realloc count of blocks. */
+    bcache_id_t count; /**< count of blocks in one data buffer. */
 
+    bcache_id_t *ref_counts; /**< ref_count for blocks. */
     bcache_id_t *free_blocks; /**< record the ids of free block. */
     bcache_id_t num_free_blocks; /**< number of free blocks. */
 
@@ -66,13 +66,10 @@ typedef struct _st_block_cache_t_
  * Create a block memory cache.
  * @ingroup g_block_cache
  * @param[in] block_size size of each block.
- * @param[in] init_count initial count of blocks.
- * @param[in] realloc_count count of blocks to realloc when needed,
- *            if non-positive, do not extend.
+ * @param[in] count count of blocks, maybe extend by multiplies of it.
  * @return block_cache on success, otherwise NULL.
  */
-st_block_cache_t* st_block_cache_create(size_t block_size,
-        bcache_id_t init_count, bcache_id_t realloc_count);
+st_block_cache_t* st_block_cache_create(size_t block_size, bcache_id_t count);
 
 /**
  * Destroy a block cache and set the pointer to NULL.
