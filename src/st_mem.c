@@ -148,7 +148,9 @@ void* st_realloc_impl(void *ptr, size_t size)
         g_usage.peak = g_usage.size;
     }
     g_usage.num_allocs++;
-    g_usage.num_frees++;
+    if (ptr != NULL) {
+        g_usage.num_frees++;
+    }
 
     if (pthread_mutex_unlock(&g_usage.lock) != 0) {
         ST_WARNING("Failed to pthread_mutex_unlock.");
@@ -323,8 +325,11 @@ RET:
         if (g_usage.size > g_usage.peak) {
             g_usage.peak = g_usage.size;
         }
-        g_usage.num_frees++;
         g_usage.num_allocs++;
+
+        if (ptr != NULL) {
+            g_usage.num_frees++;
+        }
 
         if (pthread_mutex_unlock(&g_usage.lock) != 0) {
             ST_WARNING("Failed to pthread_mutex_unlock.");
