@@ -325,9 +325,9 @@ RET:
         if (g_usage.size > g_usage.peak) {
             g_usage.peak = g_usage.size;
         }
-        g_usage.num_allocs++;
 
         if (ptr != NULL) {
+            g_usage.num_allocs++;
             g_usage.num_frees++;
         }
 
