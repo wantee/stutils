@@ -129,7 +129,7 @@ static int run_all_tests()
 {
     int ret = 0;
 
-    if (unit_test_block_cache(5) != 0) {
+    if (unit_test_block_cache() != 0) {
         ret = -1;
     }
 

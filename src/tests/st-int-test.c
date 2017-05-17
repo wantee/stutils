@@ -849,7 +849,7 @@ static int unit_test_int_insert()
         }
 
         sz = n - 1;
-        if (st_int_insert(A, n, &sz, ref[i]) < 0) {
+        if (st_int_insert(A, n, &sz, ref[i]) != i) {
             fprintf(stderr, "Failed\n");
             return -1;
         }
@@ -879,7 +879,7 @@ static int unit_test_int_insert()
     }
     fprintf(stderr, "    Case %d...", ncase++);
     sz = n;
-    if (st_int_insert(A, n, &sz, ref[0]) < 0) {
+    if (st_int_insert(A, n, &sz, ref[0]) != 0) {
         fprintf(stderr, "Failed\n");
         return -1;
     }
@@ -897,7 +897,7 @@ static int unit_test_int_insert()
 
     fprintf(stderr, "    Case %d...", ncase++);
     sz = n;
-    if (st_int_insert(A, n + 1, &sz, ref[n]) < 0) {
+    if (st_int_insert(A, n + 1, &sz, ref[n]) != n) {
         fprintf(stderr, "Failed\n");
         return -1;
     }

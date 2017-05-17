@@ -449,5 +449,5 @@ int st_insert(void *base, int cap, size_t sz, int *num, void *elem,
     }
     *num += 1;
 
-    return *num - 1;
+    return i;
 }
