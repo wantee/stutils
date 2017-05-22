@@ -320,8 +320,13 @@ int st_conf_load(st_conf_t *st_conf, const char *conf_file)
     return 0;
 
 ERR:
-    safe_fclose(g_global_fp);
-    safe_fclose(g_cur_fp);
+    if (g_cur_fp != g_global_fp) {
+        safe_fclose(g_global_fp);
+        safe_fclose(g_cur_fp);
+    } else {
+        safe_fclose(g_global_fp);
+        g_cur_fp = NULL;
+    }
     return -1;
 }
 
