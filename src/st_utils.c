@@ -416,10 +416,10 @@ int st_permutation(void *base, size_t n, size_t sz,
 }
 
 /* Testing for this function is done in st_int_insert. */
-int st_insert(void *base, int cap, size_t sz, int *num, void *elem,
-	    st_cmp_func_t cmp, void *args)
+int st_insert(void *base, size_t cap, size_t sz, size_t *num, size_t *pos,
+        void *elem, st_cmp_func_t cmp, void *args)
 {
-    int i;
+    size_t i;
     st_cmp_ret_t cmp_ret;
 
     ST_CHECK_PARAM(base == NULL || cap <= 0 || num == NULL || *num < 0, -1);
@@ -430,7 +430,10 @@ int st_insert(void *base, int cap, size_t sz, int *num, void *elem,
             ST_WARNING("Compare error between input elem and [%zu]th elem.", i);
             return -1;
         } else if (cmp_ret == ST_CMP_EQUAL) {
-            return i;
+            if (pos != NULL) {
+                *pos = i;
+            }
+            return 0;
         } else if (cmp_ret == ST_CMP_GREATER) {
             break;
         }
@@ -449,5 +452,8 @@ int st_insert(void *base, int cap, size_t sz, int *num, void *elem,
     }
     *num += 1;
 
-    return i;
+    if (pos != NULL) {
+        *pos = i;
+    }
+    return 0;
 }

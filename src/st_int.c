@@ -557,7 +557,7 @@ static st_cmp_ret_t st_int_cmp (const void *elem1, const void *elem2,
     return ST_CMP_EQUAL;
 }
 
-int st_int_insert(int *A, int cap, int *sz, int n)
+int st_int_insert(int *A, size_t cap, size_t *sz, size_t *pos, int n)
 {
-    return st_insert(A, cap, sizeof(int), sz, &n, st_int_cmp, NULL);
+    return st_insert(A, cap, sizeof(int), sz, pos, &n, st_int_cmp, NULL);
 }

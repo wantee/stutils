@@ -833,7 +833,7 @@ static int unit_test_int_insert()
     int A[128] = {0};
     int ncase = 0;
 
-    int i, j, k, n, sz;
+    size_t i, j, k, n, sz, pos;
 
     n = sizeof(ref) / sizeof(ref[0]) - 1;
     fprintf(stderr, "  Testing st_int_insert...\n");
@@ -849,7 +849,11 @@ static int unit_test_int_insert()
         }
 
         sz = n - 1;
-        if (st_int_insert(A, n, &sz, ref[i]) != i) {
+        if (st_int_insert(A, n, &sz, &pos, ref[i]) < 0) {
+            fprintf(stderr, "Failed\n");
+            return -1;
+        }
+        if (i != pos) {
             fprintf(stderr, "Failed\n");
             return -1;
         }
@@ -868,7 +872,7 @@ static int unit_test_int_insert()
 
     fprintf(stderr, "    Case %d...", ncase++);
     sz = n;
-    if (st_int_insert(A, n, &sz, ref[i]) >= 0) {
+    if (st_int_insert(A, n, &sz, NULL, ref[i]) >= 0) {
         fprintf(stderr, "Failed\n");
         return -1;
     }
@@ -879,7 +883,11 @@ static int unit_test_int_insert()
     }
     fprintf(stderr, "    Case %d...", ncase++);
     sz = n;
-    if (st_int_insert(A, n, &sz, ref[0]) != 0) {
+    if (st_int_insert(A, n, &sz, &pos, ref[0]) < 0) {
+        fprintf(stderr, "Failed\n");
+        return -1;
+    }
+    if (0 != pos) {
         fprintf(stderr, "Failed\n");
         return -1;
     }
@@ -897,7 +905,11 @@ static int unit_test_int_insert()
 
     fprintf(stderr, "    Case %d...", ncase++);
     sz = n;
-    if (st_int_insert(A, n + 1, &sz, ref[n]) != n) {
+    if (st_int_insert(A, n + 1, &sz, &pos, ref[n]) < 0) {
+        fprintf(stderr, "Failed\n");
+        return -1;
+    }
+    if (n != pos) {
         fprintf(stderr, "Failed\n");
         return -1;
     }

@@ -78,13 +78,14 @@ typedef st_cmp_ret_t (*st_cmp_func_t) (const void *elem1, const void *elem2,
  * @param[in] cap capacity of array.
  * @param[in] sz size of one elem.
  * @param[in, out] num number of array.
+ * @param[out] pos position of the new number in array.
  * @param[in] elem the elem to be inserted.
  * @param[in] cmp the comparison function.
  * @param[in] args args to the comparison function.
  * @return the index of inserted position, negtive value if any error.
  */
-int st_insert(void *base, int cap, size_t sz, int *num, void *elem,
-	    st_cmp_func_t cmp, void *arg);
+int st_insert(void *base, size_t cap, size_t sz, size_t *num, size_t *pos,
+        void *elem, st_cmp_func_t cmp, void *arg);
 #ifdef __cplusplus
 }
 #endif

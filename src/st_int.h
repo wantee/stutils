@@ -136,10 +136,11 @@ int st_size_seg_union(st_size_seg_t *union_segs, size_t cap_union,
  * @param[in] A the int array.
  * @param[in] cap capacity of A.
  * @param[in, out] sz size of A.
+ * @param[out] pos position of the new number in A.
  * @param[in] n the integet.
  * @return non-zero value if any error.
  */
-int st_int_insert(int *A, int cap, int *sz, int n);
+int st_int_insert(int *A, size_t cap, size_t *sz, size_t *pos, int n);
 
 #ifdef __cplusplus
 }
