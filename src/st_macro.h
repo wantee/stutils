@@ -33,18 +33,13 @@ extern "C" {
 #include <strings.h>
 #include <sys/time.h>
 #include <math.h>
+#include <stdbool.h>
 
 #define ST_GIT_COMMIT "0"
 
 #define MAX_LINE_LEN        4096
 #define MAX_DIR_LEN         256
 #define MAX_NAME_LEN        64
-
-#ifndef bool
-#define bool char
-#define true 1
-#define false 0
-#endif
 
 #define bool2str(b) ((b)?"true":"false")
 #define str2bool(s) ((strncasecmp((s), "true", 4) == 0)? true : false)
