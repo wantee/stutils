@@ -317,7 +317,7 @@ void st_opt_show_usage(st_opt_t *opt, FILE *fp, bool show_format)
             st_info_type_print_val(opt->infos + i, fp);
             fprintf(fp, ")\n");
         } else {
-            fprintf(fp, "  --%s^%*s: %s (%s, default = ",
+            fprintf(fp, "  --%s.%*s: %s (%s, default = ",
                     opt->infos[i].sec_name,
                     -(25-1-(int)strlen(opt->infos[i].sec_name)),
                     opt->infos[i].name,
@@ -332,8 +332,8 @@ void st_opt_show_usage(st_opt_t *opt, FILE *fp, bool show_format)
     if (show_format) {
         fprintf(fp, "Format: --help\n");
         fprintf(fp, "        --key=value\n");
-        fprintf(fp, "        --sec^key=value (with section specified)\n");
-        fprintf(fp, "        --sec^[sub1^...subN^]key=value (with subsection(s) specified)\n");
+        fprintf(fp, "        --sec.key=value (with section specified)\n");
+        fprintf(fp, "        --sec.[<sub1>.<sub2>...<subN>.]key=value (with subsection(s) specified)\n");
     }
 }
 
@@ -381,14 +381,14 @@ int st_opt_parse_one(st_opt_t *opt, int *argc, const char *argv[])
     strncpy(sec_key, key_value, MAX_LINE_LEN);
     sec_key[MAX_LINE_LEN - 1] = '\0';
 
-    key = strrchr(sec_key, '^');
+    key = strrchr(sec_key, '.');
     if (key != NULL) {
         *key = '\0';
         ++key;
 
         p = sec_key;
         while (*p != '\0') {
-            if (*p == '^') {
+            if (*p == '.') {
                 *p = '/';
             }
             ++p;

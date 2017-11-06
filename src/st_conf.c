@@ -505,7 +505,7 @@ int st_conf_get_int(st_conf_t *pconf, const char *sec_name,
         if (sec_name == NULL || sec_name[0] == '\0') {
             ST_WARNING("Int option[%s] should have arguement", key);
         } else {
-            ST_WARNING("Int option[%s^%s] should have arguement",
+            ST_WARNING("Int option[%s.%s] should have arguement",
                     sec_name, key);
         }
 
@@ -565,7 +565,7 @@ int st_conf_get_uint(st_conf_t *pconf, const char *sec_name,
         if (sec_name == NULL || sec_name[0] == '\0') {
             ST_WARNING("Uint option[%s] should have arguement", key);
         } else {
-            ST_WARNING("Uint option[%s^%s] should have arguement",
+            ST_WARNING("Uint option[%s.%s] should have arguement",
                     sec_name, key);
         }
 
@@ -624,7 +624,7 @@ int st_conf_get_long(st_conf_t *pconf, const char *sec_name,
         if (sec_name == NULL || sec_name[0] == '\0') {
             ST_WARNING("Int option[%s] should have arguement", key);
         } else {
-            ST_WARNING("Int option[%s^%s] should have arguement",
+            ST_WARNING("Int option[%s.%s] should have arguement",
                     sec_name, key);
         }
 
@@ -684,7 +684,7 @@ int st_conf_get_ulong(st_conf_t *pconf, const char *sec_name,
         if (sec_name == NULL || sec_name[0] == '\0') {
             ST_WARNING("Ulong option[%s] should have arguement", key);
         } else {
-            ST_WARNING("Ulong option[%s^%s] should have arguement",
+            ST_WARNING("Ulong option[%s.%s] should have arguement",
                     sec_name, key);
         }
 
@@ -743,7 +743,7 @@ int st_conf_get_double(st_conf_t *pconf, const char *sec_name,
         if (sec_name == NULL || sec_name[0] == '\0') {
             ST_WARNING("Float option[%s] should have arguement", key);
         } else {
-            ST_WARNING("Float option[%s^%s] should have arguement",
+            ST_WARNING("Float option[%s.%s] should have arguement",
                     sec_name, key);
         }
 
