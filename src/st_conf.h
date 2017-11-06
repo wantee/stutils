@@ -81,6 +81,8 @@ void st_conf_destroy(st_conf_t *pconf);
 
 void st_conf_show(st_conf_t *pconf, const char *header);
 
+bool st_conf_check(st_conf_t *pconf, char* (*norm_key_func)(char *, bool));
+
 st_conf_section_t* st_conf_new_sec(st_conf_t *conf, const char *name);
 
 st_conf_section_t* st_conf_def_sec(st_conf_t *conf);

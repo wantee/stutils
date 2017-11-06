@@ -806,7 +806,7 @@ void st_conf_destroy(st_conf_t * pconf)
     }
 }
 
-static char* st_conf_normalize_key(char *key)
+static char* st_conf_normalize_key(char *key, bool forprint)
 {
     char *p;
 
@@ -838,17 +838,60 @@ void st_conf_show(st_conf_t *pconf, const char *header)
         if (pconf->secs[s].comment_out != 0) {
             continue;
         }
-        ST_CLEAN("[%s]", st_conf_normalize_key(pconf->secs[s].name));
+        ST_CLEAN("[%s]", st_conf_normalize_key(pconf->secs[s].name, true));
         for (p = 0; p < pconf->secs[s].param_num; p++) {
             ST_CLEAN("%s{%s : %s}", pconf->secs[s].param[p].used ? "" : "*",
-                    st_conf_normalize_key(pconf->secs[s].param[p].key),
+                    st_conf_normalize_key(pconf->secs[s].param[p].key, true),
                     pconf->secs[s].param[p].value);
         }
         for (p = 0; p < pconf->secs[s].def_param_num; p++) {
             ST_CLEAN("{%s : %s}#",
-                    st_conf_normalize_key(pconf->secs[s].def_param[p].key),
+                    st_conf_normalize_key(pconf->secs[s].def_param[p].key, true),
                     pconf->secs[s].def_param[p].value);
         }
         ST_CLEAN("");
     }
+}
+
+bool st_conf_check(st_conf_t *pconf,
+        char* (*norm_key_func)(char *, bool forprint))
+{
+    int s;
+    int p;
+
+    char sec_sep;
+    bool ret = true;
+
+    if (pconf == NULL) {
+        return true;
+    }
+
+    if (norm_key_func == NULL) {
+        norm_key_func = st_conf_normalize_key;
+        sec_sep = '/';
+    } else {
+        sec_sep = '.';
+    }
+
+    for (s = 0; s < pconf->sec_num; s++) {
+        if (pconf->secs[s].comment_out != 0) {
+            continue;
+        }
+        for (p = 0; p < pconf->secs[s].param_num; p++) {
+            if (! pconf->secs[s].param[p].used) {
+                if (strcasecmp(pconf->secs[s].name, DEF_SEC_NAME) == 0) {
+                    fprintf(stderr, "Unknown option: %s\n",
+                            norm_key_func(pconf->secs[s].param[p].key, true));
+                } else {
+                    fprintf(stderr, "Unknown option: %s%c%s\n", pconf->secs[s].name,
+                            sec_sep,
+                            norm_key_func(pconf->secs[s].param[p].key, true));
+                }
+
+                ret = false;
+            }
+        }
+    }
+
+    return ret;
 }

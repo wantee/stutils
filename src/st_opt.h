@@ -85,6 +85,8 @@ void st_opt_destroy(st_opt_t *popt);
 
 void st_opt_show(st_opt_t *popt, const char *header);
 
+bool st_opt_check(st_opt_t *popt);
+
 void st_opt_show_usage(st_opt_t *opt, FILE *fp, bool show_format);
 
 int st_opt_get_double(st_opt_t *popt, const char *sec_name,

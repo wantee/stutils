@@ -59,6 +59,32 @@ ERR:
     return -1;
 }
 
+static char* st_opt_normalize_key(char *key, bool forprint)
+{
+    char *p;
+
+    p = key;
+    if (forprint) {
+        while (*p) {
+            if (*p == '_') {
+                *p = '-';
+            } else {
+                *p = tolower(*p);
+            }
+            p++;
+        }
+    } else {
+        while (*p) {
+            if (*p == '-') {
+                *p = '_';
+            }
+            p++;
+        }
+    }
+
+    return key;
+}
+
 st_opt_t* st_opt_create()
 {
     st_opt_t *opt = NULL;
@@ -126,6 +152,27 @@ void st_opt_show(st_opt_t *popt, const char *header)
         snprintf(name, MAX_LINE_LEN, "%s -- Command Line", header);
     }
     st_conf_show(popt->cmd_conf, name);
+}
+
+bool st_opt_check(st_opt_t *popt)
+{
+    bool ret = true;
+
+    if (popt == NULL) {
+        return true;
+    }
+
+    if (popt->file_conf != NULL) {
+        if (! st_conf_check(popt->file_conf, NULL)) {
+            ret = false;
+        }
+    }
+
+    if (! st_conf_check(popt->cmd_conf, st_opt_normalize_key)) {
+        ret = false;
+    }
+
+    return ret;
 }
 
 static int st_opt_info_comp(const void *a, const void *b)
@@ -259,32 +306,6 @@ static int st_opt_add_info(st_opt_t *opt, st_opt_type_t type,
     opt->info_num++;
 
     return 0;
-}
-
-static char* st_opt_normalize_key(char *key, bool forprint)
-{
-    char *p;
-
-    p = key;
-    if (forprint) {
-        while (*p) {
-            if (*p == '_') {
-                *p = '-';
-            } else {
-                *p = tolower(*p);
-            }
-            p++;
-        }
-    } else {
-        while (*p) {
-            if (*p == '-') {
-                *p = '_';
-            }
-            p++;
-        }
-    }
-
-    return key;
 }
 
 void st_opt_show_usage(st_opt_t *opt, FILE *fp, bool show_format)
