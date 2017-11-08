@@ -1,18 +1,18 @@
 /*
  * The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Wang Jian
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -122,7 +122,7 @@ int st_log_open(st_log_opt_t *log_opt)
             || (strcmp(log_opt->file, "/dev/stdout") == 0)) {
         g_normal_fp = stdout;
         g_wf_fp = stderr;
-    } else if (log_opt != NULL 
+    } else if (log_opt != NULL
             && strcmp(log_opt->file, "/dev/stderr") == 0) {
         g_normal_fp = stderr;
         g_wf_fp = stderr;
@@ -164,7 +164,7 @@ int st_log_open_mt(st_log_opt_t *log_opt)
     return st_log_open(log_opt);
 }
 
-int st_log_write(int lev, const char* fmt, ...) 
+int st_log_write(int lev, const char* fmt, ...)
 {
     va_list args;
     FILE *fp;
@@ -173,7 +173,7 @@ int st_log_write(int lev, const char* fmt, ...)
     int ret;
 
     if (g_normal_fp == NULL) {
-        g_normal_fp = stdout; 
+        g_normal_fp = stdout;
     }
 
     if (g_wf_fp == NULL) {
@@ -212,6 +212,10 @@ int st_log_write(int lev, const char* fmt, ...)
         case ST_LOG_LEV_FATAL:
             fp = g_wf_fp;
             fprintf(fp, "FATAL: ");
+            break;
+        case ST_LOG_LEV_ERROR:
+            fp = g_wf_fp;
+            fprintf(fp, "ERROR: ");
             break;
         case ST_LOG_LEV_WARNING:
             fp = g_wf_fp;
@@ -258,7 +262,7 @@ int st_log_write(int lev, const char* fmt, ...)
     return ret;
 }
 
-int st_log_close(int iserr) 
+int st_log_close(int iserr)
 {
     char now[20];
 
