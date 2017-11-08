@@ -46,7 +46,7 @@ FILE* st_fopen(const char *name, const char *mode)
         } else if (mode[0] == 'w' || mode[0] == 'a') {
             return stdout;
         } else {
-            ST_WARNING("Unkown mode[%s].", mode);
+            ST_ERROR("Unkown mode[%s].", mode);
             return NULL;
         }
     } else if (name[0] == '|' && (mode[0] == 'w' || mode[0] == 'a')) {
@@ -55,7 +55,7 @@ FILE* st_fopen(const char *name, const char *mode)
         return st_popen(name + 1, m);
     } else if (name[strlen(name) - 1] == '|' && mode[0] == 'r') {
         if (strlen(name) >= MAX_NAME_LEN) {
-            ST_WARNING("Too long name[%s]", name);
+            ST_ERROR("Too long name[%s]", name);
             return NULL;
         }
         strcpy(cmd, name);
@@ -77,7 +77,7 @@ void st_fclose(FILE *fp)
     }
 
     if(fstat(fileno(fp), &s) != 0) {
-        ST_WARNING("Failed to fstat[%m]");
+        ST_ERROR("Failed to fstat[%m]");
         return;
     }
 
@@ -105,7 +105,7 @@ char* st_fgets(char **line, size_t *sz, FILE *fp, bool *err)
     if (*line == NULL || *sz <= 0) {
         *line = (char *)st_malloc(MAX_LINE_LEN);
         if (*line == NULL) {
-            ST_WARNING("Failed to st_malloc line");
+            ST_ERROR("Failed to st_malloc line");
             goto ERR;
         }
         *sz = MAX_LINE_LEN;
@@ -138,7 +138,7 @@ char* st_fgets(char **line, size_t *sz, FILE *fp, bool *err)
 
         *line = (char *)st_realloc(*line, *sz);
         if (*line == NULL) {
-            ST_WARNING("Failed to st_realloc line. size[%zu -> %zu]",
+            ST_ERROR("Failed to st_realloc line. size[%zu -> %zu]",
                     old_sz, *sz);
             goto ERR;
         }
@@ -177,7 +177,7 @@ int st_readline(FILE *fp, const char *fmt, ...)
     int ret;
 
     if (st_fgets(&line, &sz, fp, NULL) == NULL) {
-        ST_WARNING("Failed to read line.");
+        ST_ERROR("Failed to read line.");
         goto ERR;
     }
 
@@ -211,7 +211,7 @@ size_t st_count_lines(const char *filename)
 
     fp = st_fopen(filename, "r");
     if (fp == NULL) {
-        ST_WARNING("Failed to open file[%s]", filename);
+        ST_ERROR("Failed to open file[%s]", filename);
         goto ERR;
     }
 
@@ -222,7 +222,7 @@ size_t st_count_lines(const char *filename)
         }
     }
     if (ferror(fp)) {
-        ST_WARNING("Read error for file[%s]", filename);
+        ST_ERROR("Read error for file[%s]", filename);
         goto ERR;
     }
 

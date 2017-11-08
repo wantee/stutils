@@ -70,7 +70,7 @@ int st_varint_encode_uint64(uint64_t value, uint8_t *buf, size_t buf_len)
 		*(ptr++) = (value & 0xFF) | MSB;
 		value = value >> 7;
 		if ((ptr - buf) >= buf_len) {
-            ST_WARNING("buf overflow");
+            ST_ERROR("buf overflow");
             return -1;
         }
 	}
@@ -112,7 +112,7 @@ int st_varint_encode_stream_uint64(uint64_t value, FILE *fp)
 	while (value & MSBALL) {
 		c = (value & 0xFF) | MSB;
         if (fwrite(&c, sizeof(uint8_t), 1, fp) != 1) {
-            ST_WARNING("Failed to write encoded stream.");
+            ST_ERROR("Failed to write encoded stream.");
             return -1;
         }
         ++len;
@@ -120,7 +120,7 @@ int st_varint_encode_stream_uint64(uint64_t value, FILE *fp)
 	}
     c = value;
     if (fwrite(&c, sizeof(uint8_t), 1, fp) != 1) {
-        ST_WARNING("Failed to write encoded stream.");
+        ST_ERROR("Failed to write encoded stream.");
         return -1;
     }
     ++len;
@@ -143,7 +143,7 @@ int st_varint_decode_stream_uint64(FILE *fp, uint64_t *value)
     *value = 0;
 
     if (fread(&c, sizeof(uint8_t), 1, fp) != 1) {
-        ST_WARNING("Failed to read decoded stream.");
+        ST_ERROR("Failed to read decoded stream.");
         return -1;
     }
     ++len;
@@ -151,7 +151,7 @@ int st_varint_decode_stream_uint64(FILE *fp, uint64_t *value)
 		u = c;
 		*value += ((u & 0x7F) << bits);
         if (fread(&c, sizeof(uint8_t), 1, fp) != 1) {
-            ST_WARNING("Failed to read decoded stream.");
+            ST_ERROR("Failed to read decoded stream.");
             return -1;
         }
         ++len;

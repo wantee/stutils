@@ -40,7 +40,7 @@ static int resize_sec(st_conf_section_t *sec)
         sec->param = (st_conf_param_t *)st_realloc(sec->param,
                     sec->param_cap * sizeof(st_conf_param_t));
         if (sec->param == NULL) {
-            ST_WARNING("Failed to st_realloc param for sec.");
+            ST_ERROR("Failed to st_realloc param for sec.");
             goto ERR;
         }
         memset(sec->param + sec->param_num, 0,
@@ -52,7 +52,7 @@ static int resize_sec(st_conf_section_t *sec)
         sec->def_param = (st_conf_param_t *)st_realloc(sec->def_param,
                     sec->def_param_cap * sizeof(st_conf_param_t));
         if (sec->def_param == NULL) {
-            ST_WARNING("Failed to st_realloc def_param for sec.");
+            ST_ERROR("Failed to st_realloc def_param for sec.");
             goto ERR;
         }
         memset(sec->def_param + sec->def_param_num, 0,
@@ -79,7 +79,7 @@ st_conf_section_t* st_conf_new_sec(st_conf_t *conf, const char *name)
         conf->secs = (st_conf_section_t *)st_realloc(conf->secs,
                     conf->sec_cap * sizeof(st_conf_section_t));
         if (conf->secs == NULL) {
-            ST_WARNING("Failed to st_realloc secs.");
+            ST_ERROR("Failed to st_realloc secs.");
             goto ERR;
         }
         memset(conf->secs + conf->sec_num, 0,
@@ -88,7 +88,7 @@ st_conf_section_t* st_conf_new_sec(st_conf_t *conf, const char *name)
 
     strncpy(conf->secs[conf->sec_num].name, name, MAX_ST_CONF_LEN);
     if (resize_sec(conf->secs + conf->sec_num) < 0) {
-        ST_WARNING("Failed to resize_sec.");
+        ST_ERROR("Failed to resize_sec.");
         goto ERR;
     }
 
@@ -121,7 +121,7 @@ int st_conf_add_param(st_conf_section_t *sec, const char *key,
 
         sec->param_num++;
         if (resize_sec(sec) < 0) {
-            ST_WARNING("Failed to resize_sec.");
+            ST_ERROR("Failed to resize_sec.");
             return -1;
         }
     }
@@ -179,7 +179,7 @@ int st_resolve_param(const char *line, st_conf_t *pconf,
         return 0;
     } else if (buffer[0] == '[') {
         if (g_global_fp != g_cur_fp) {
-            ST_WARNING("section can not be nested in section.");
+            ST_ERROR("section can not be nested in section.");
             return -1;
         }
 
@@ -187,7 +187,7 @@ int st_resolve_param(const char *line, st_conf_t *pconf,
         if (work != NULL) {
             *work = '\0';
         } else {
-            ST_WARNING("Not closed '['.");
+            ST_ERROR("Not closed '['.");
             return -1;
         }
 
@@ -204,7 +204,7 @@ int st_resolve_param(const char *line, st_conf_t *pconf,
 
             g_cur_fp = fopen(sec_conf, "rb");
             if (g_cur_fp == NULL) {
-                ST_WARNING("Failed to open conf[%s] for section[%s].",
+                ST_ERROR("Failed to open conf[%s] for section[%s].",
                         sec_conf, work);
                 return -1;
             }
@@ -212,7 +212,7 @@ int st_resolve_param(const char *line, st_conf_t *pconf,
 
         *sec = st_conf_new_sec(pconf, work);
         if ((*sec) == NULL) {
-            ST_WARNING("Failed to st_conf_new_sec.");
+            ST_ERROR("Failed to st_conf_new_sec.");
             return -1;
         }
 
@@ -234,7 +234,7 @@ int st_resolve_param(const char *line, st_conf_t *pconf,
     work++;
 
     if (st_conf_add_param(*sec, buffer, work) < 0) {
-        ST_WARNING("Failed to st_conf_add_param. key[%s], value[$s]",
+        ST_ERROR("Failed to st_conf_add_param. key[%s], value[$s]",
                 buffer, work);
         return -1;
     }
@@ -261,13 +261,13 @@ st_conf_t* st_conf_create()
 
     pconf = (st_conf_t *)st_malloc(sizeof(st_conf_t));
     if (pconf == NULL) {
-        ST_WARNING("Failed to st_malloc st_conf.");
+        ST_ERROR("Failed to st_malloc st_conf.");
         goto ERR;
     }
     memset(pconf, 0, sizeof(st_conf_t));
 
     if (st_conf_new_sec(pconf, DEF_SEC_NAME) == NULL) {
-        ST_WARNING("Failed to st_conf_new_sec.");
+        ST_ERROR("Failed to st_conf_new_sec.");
         goto ERR;
     }
 
@@ -288,7 +288,7 @@ int st_conf_load(st_conf_t *st_conf, const char *conf_file)
 
     cur_sec = st_conf_def_sec(st_conf);
     if (cur_sec == NULL) {
-        ST_WARNING("Error: No default section.");
+        ST_ERROR("Error: No default section.");
         goto ERR;
     }
 
@@ -300,7 +300,7 @@ int st_conf_load(st_conf_t *st_conf, const char *conf_file)
     g_cur_fp = g_global_fp;
     while (fgets(line, MAX_ST_CONF_LINE_LEN, g_cur_fp)) {
         if (st_resolve_param(line, st_conf, &cur_sec) < 0) {
-            ST_WARNING("Failed to st_resolve_param.");
+            ST_ERROR("Failed to st_resolve_param.");
             goto ERR;
         }
 
@@ -399,7 +399,7 @@ int st_conf_get_str_def(st_conf_t *pconf, const char *sec_name,
         if (sec_i < 0) {
             sec = st_conf_new_sec(pconf, sec_name);
             if (sec == NULL) {
-                ST_WARNING("Failed to st_conf_new_sec.");
+                ST_ERROR("Failed to st_conf_new_sec.");
                 return -1;
             }
         } else {
@@ -415,7 +415,7 @@ int st_conf_get_str_def(st_conf_t *pconf, const char *sec_name,
         sec->def_param_num++;
 
         if (resize_sec(sec) < 0) {
-            ST_WARNING("Failed to resize_sec.");
+            ST_ERROR("Failed to resize_sec.");
             return -1;
         }
     }
@@ -443,7 +443,7 @@ int st_conf_get_bool(st_conf_t *pconf, const char *sec_name,
             || strncasecmp(v, "FALSE", 6) == 0) {
         (*value) = false;
     } else {
-        ST_WARNING("Unkown bool value[%s], should be \"True\" or \"False\".",
+        ST_ERROR("Unkown bool value[%s], should be \"True\" or \"False\".",
                 v);
         return -1;
     }
@@ -463,7 +463,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
         if (sec_i < 0) {
             sec = st_conf_new_sec(pconf, sec_name);
             if (sec == NULL) {
-                ST_WARNING("Failed to st_conf_new_sec.");
+                ST_ERROR("Failed to st_conf_new_sec.");
                 return -1;
             }
         } else {
@@ -484,7 +484,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
         sec->def_param_num++;
 
         if (resize_sec(sec) < 0) {
-            ST_WARNING("Failed to resize_sec.");
+            ST_ERROR("Failed to resize_sec.");
             return -1;
         }
     }
@@ -503,9 +503,9 @@ int st_conf_get_int(st_conf_t *pconf, const char *sec_name,
 
     if (v[0] == '\0') {
         if (sec_name == NULL || sec_name[0] == '\0') {
-            ST_WARNING("Int option[%s] should have arguement", key);
+            ST_ERROR("Int option[%s] should have arguement", key);
         } else {
-            ST_WARNING("Int option[%s.%s] should have arguement",
+            ST_ERROR("Int option[%s.%s] should have arguement",
                     sec_name, key);
         }
 
@@ -528,7 +528,7 @@ int st_conf_get_int_def(st_conf_t *pconf, const char *sec_name,
         if (sec_i < 0) {
             sec = st_conf_new_sec(pconf, sec_name);
             if (sec == NULL) {
-                ST_WARNING("Failed to st_conf_new_sec.");
+                ST_ERROR("Failed to st_conf_new_sec.");
                 return -1;
             }
         } else {
@@ -544,7 +544,7 @@ int st_conf_get_int_def(st_conf_t *pconf, const char *sec_name,
         sec->def_param_num++;
 
         if (resize_sec(sec) < 0) {
-            ST_WARNING("Failed to resize_sec.");
+            ST_ERROR("Failed to resize_sec.");
             return -1;
         }
     }
@@ -563,9 +563,9 @@ int st_conf_get_uint(st_conf_t *pconf, const char *sec_name,
 
     if (v[0] == '\0') {
         if (sec_name == NULL || sec_name[0] == '\0') {
-            ST_WARNING("Uint option[%s] should have arguement", key);
+            ST_ERROR("Uint option[%s] should have arguement", key);
         } else {
-            ST_WARNING("Uint option[%s.%s] should have arguement",
+            ST_ERROR("Uint option[%s.%s] should have arguement",
                     sec_name, key);
         }
 
@@ -588,7 +588,7 @@ int st_conf_get_uint_def(st_conf_t *pconf, const char *sec_name,
         if (sec_i < 0) {
             sec = st_conf_new_sec(pconf, sec_name);
             if (sec == NULL) {
-                ST_WARNING("Failed to st_conf_new_sec.");
+                ST_ERROR("Failed to st_conf_new_sec.");
                 return -1;
             }
         } else {
@@ -603,7 +603,7 @@ int st_conf_get_uint_def(st_conf_t *pconf, const char *sec_name,
         sec->def_param_num++;
 
         if (resize_sec(sec) < 0) {
-            ST_WARNING("Failed to resize_sec.");
+            ST_ERROR("Failed to resize_sec.");
             return -1;
         }
     }
@@ -622,9 +622,9 @@ int st_conf_get_long(st_conf_t *pconf, const char *sec_name,
 
     if (v[0] == '\0') {
         if (sec_name == NULL || sec_name[0] == '\0') {
-            ST_WARNING("Int option[%s] should have arguement", key);
+            ST_ERROR("Long option[%s] should have arguement", key);
         } else {
-            ST_WARNING("Int option[%s.%s] should have arguement",
+            ST_ERROR("Long option[%s.%s] should have arguement",
                     sec_name, key);
         }
 
@@ -647,7 +647,7 @@ int st_conf_get_long_def(st_conf_t *pconf, const char *sec_name,
         if (sec_i < 0) {
             sec = st_conf_new_sec(pconf, sec_name);
             if (sec == NULL) {
-                ST_WARNING("Failed to st_conf_new_sec.");
+                ST_ERROR("Failed to st_conf_new_sec.");
                 return -1;
             }
         } else {
@@ -663,7 +663,7 @@ int st_conf_get_long_def(st_conf_t *pconf, const char *sec_name,
         sec->def_param_num++;
 
         if (resize_sec(sec) < 0) {
-            ST_WARNING("Failed to resize_sec.");
+            ST_ERROR("Failed to resize_sec.");
             return -1;
         }
     }
@@ -682,9 +682,9 @@ int st_conf_get_ulong(st_conf_t *pconf, const char *sec_name,
 
     if (v[0] == '\0') {
         if (sec_name == NULL || sec_name[0] == '\0') {
-            ST_WARNING("Ulong option[%s] should have arguement", key);
+            ST_ERROR("Ulong option[%s] should have arguement", key);
         } else {
-            ST_WARNING("Ulong option[%s.%s] should have arguement",
+            ST_ERROR("Ulong option[%s.%s] should have arguement",
                     sec_name, key);
         }
 
@@ -707,7 +707,7 @@ int st_conf_get_ulong_def(st_conf_t *pconf, const char *sec_name,
         if (sec_i < 0) {
             sec = st_conf_new_sec(pconf, sec_name);
             if (sec == NULL) {
-                ST_WARNING("Failed to st_conf_new_sec.");
+                ST_ERROR("Failed to st_conf_new_sec.");
                 return -1;
             }
         } else {
@@ -722,7 +722,7 @@ int st_conf_get_ulong_def(st_conf_t *pconf, const char *sec_name,
         sec->def_param_num++;
 
         if (resize_sec(sec) < 0) {
-            ST_WARNING("Failed to resize_sec.");
+            ST_ERROR("Failed to resize_sec.");
             return -1;
         }
     }
@@ -741,9 +741,9 @@ int st_conf_get_double(st_conf_t *pconf, const char *sec_name,
 
     if (v[0] == '\0') {
         if (sec_name == NULL || sec_name[0] == '\0') {
-            ST_WARNING("Float option[%s] should have arguement", key);
+            ST_ERROR("Float option[%s] should have arguement", key);
         } else {
-            ST_WARNING("Float option[%s.%s] should have arguement",
+            ST_ERROR("Float option[%s.%s] should have arguement",
                     sec_name, key);
         }
 
@@ -766,7 +766,7 @@ int st_conf_get_double_def(st_conf_t *pconf, const char *sec_name,
         if (sec_i < 0) {
             sec = st_conf_new_sec(pconf, sec_name);
             if (sec == NULL) {
-                ST_WARNING("Failed to st_conf_new_sec.");
+                ST_ERROR("Failed to st_conf_new_sec.");
                 return -1;
             }
         } else {
@@ -780,7 +780,7 @@ int st_conf_get_double_def(st_conf_t *pconf, const char *sec_name,
         sec->def_param[sec->def_param_num].value[MAX_ST_CONF_LEN - 1] = 0;
         sec->def_param_num++;
         if (resize_sec(sec) < 0) {
-            ST_WARNING("Failed to resize_sec.");
+            ST_ERROR("Failed to resize_sec.");
             return -1;
         }
     }

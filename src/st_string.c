@@ -135,7 +135,7 @@ int split_line(const char *line, char *fields,
         if (split && i > 0) {
             fields[f * field_len + i] = '\0';
             if (f >= n_field - 1) {
-                ST_WARNING("Too many fields. [%s]", line);
+                ST_ERROR("Too many fields. [%s]", line);
                 return -1;
             }
             f++;
@@ -143,7 +143,7 @@ int split_line(const char *line, char *fields,
         }
 
         if (i >= field_len - 1) {
-            ST_WARNING("Too long field. [%s]", p - i);
+            ST_ERROR("Too long field. [%s]", p - i);
             return -1;
         }
         fields[f * field_len + i] = *p;
@@ -212,7 +212,7 @@ static int get_next_utf8_char(const char *utf8)
     }
     else
     {
-        ST_WARNING( "Unrecognized UTF8 lead byte (%02x)\n", lb );
+        ST_ERROR( "Unrecognized UTF8 lead byte (%02x)\n", lb );
         return -1;
     }
 }
@@ -240,7 +240,7 @@ int get_next_char(const char *token, encoding_type_t encoding)
         return get_next_utf8_char(token);
     }
 
-    ST_WARNING("Unsupported encoding");
+    ST_ERROR("Unsupported encoding");
     return -1;
 }
 
@@ -396,7 +396,7 @@ int st_str_replace(char* res, size_t res_len,
         }
 
         if (sz + p - str >= res_len) {
-            ST_WARNING("not enough space for result.");
+            ST_ERROR("not enough space for result.");
             goto ERR;
         }
         strncpy(res + sz, str, p - str);
@@ -404,7 +404,7 @@ int st_str_replace(char* res, size_t res_len,
 
         if (to != NULL) {
             if (sz + strlen(to) >= res_len) {
-                ST_WARNING("not enough space for result.");
+                ST_ERROR("not enough space for result.");
                 goto ERR;
             }
             strcpy(res + sz, to);
@@ -414,7 +414,7 @@ int st_str_replace(char* res, size_t res_len,
         str = p + strlen(from);
     }
     if (sz + strlen(str) >= res_len) {
-        ST_WARNING("not enough space for result.");
+        ST_ERROR("not enough space for result.");
         goto ERR;
     }
     strcpy(res + sz, str);
@@ -527,7 +527,7 @@ char* st_ll2str(char *str, size_t len, long long l, bool binary)
         sz = strlen(str);
         if (binary) {
             if (sz > len - 3) {
-                ST_WARNING("string buf len not enough");
+                ST_ERROR("string buf len not enough");
                 return NULL;
             }
             str[sz] = toupper(suf[n - 1]);
@@ -535,7 +535,7 @@ char* st_ll2str(char *str, size_t len, long long l, bool binary)
             str[sz+2] = '\0';
         } else {
             if (sz > len - 2) {
-                ST_WARNING("string buf len not enough");
+                ST_ERROR("string buf len not enough");
                 return NULL;
             }
             str[sz] = suf[n - 1];

@@ -37,14 +37,14 @@ st_heap_t* st_heap_create(st_heap_id_t capacity, st_heap_cmp_func_t cmp,
     heap = (st_heap_t*)st_malloc(sizeof(st_heap_t));
     if(NULL == heap)
     {
-        ST_WARNING("alloc memory for heap failed");
+        ST_ERROR("alloc memory for heap failed");
         return NULL;
     }
 
     heap->data_arr = (void**)st_malloc(sizeof(void*)*capacity);
     if(NULL == heap->data_arr)
     {
-        ST_WARNING("alloc memory for data_arr failed");
+        ST_ERROR("alloc memory for data_arr failed");
         goto FAILED;
     }
     heap->capacity = capacity;
@@ -75,7 +75,7 @@ int st_heap_fixup(st_heap_t *heap, st_heap_id_t index)
     size = heap->size;
     if(size <= index)
     {
-        ST_WARNING("wrong index[%u/%u] to st_heap_fixup", index, size);
+        ST_ERROR("wrong index[%u/%u] to st_heap_fixup", index, size);
         return ST_HEAP_ERR;
     }
 
@@ -124,7 +124,7 @@ int st_heap_fixdown(st_heap_t *heap, st_heap_id_t index)
     size = heap->size;
     if(size <= index)
     {
-        ST_WARNING("wrong index[%u/%u] to st_heap_fixdown", index, size);
+        ST_ERROR("wrong index[%u/%u] to st_heap_fixdown", index, size);
         return ST_HEAP_ERR;
     }
 
@@ -165,12 +165,12 @@ int st_heap_insert(st_heap_t* heap, void* obj)
 {
     if(heap->size >= heap->capacity)
     {
-        ST_WARNING("heap overflow");
+        ST_ERROR("heap overflow");
         return ST_HEAP_FULL;
     }
     if(heap->heap_index && (st_heap_id_t)(long)obj >= heap->max_heap_index_num)
     {
-        ST_WARNING("heap index overflow[%u/%u]", (st_heap_id_t)(long)obj,
+        ST_ERROR("heap index overflow[%u/%u]", (st_heap_id_t)(long)obj,
                 heap->max_heap_index_num);
         return ST_HEAP_FULL;
     }
@@ -185,7 +185,7 @@ int st_heap_insert(st_heap_t* heap, void* obj)
     }
     if(st_heap_fixup(heap, heap->size-1) != ST_HEAP_OK)
     {
-        ST_WARNING("Failed to st_heap_fixup.");
+        ST_ERROR("Failed to st_heap_fixup.");
         return ST_HEAP_ERR;
     }
 
@@ -196,7 +196,7 @@ int st_heap_extract(st_heap_t* heap, void** obj)
 {
     if(heap->size <= 0)
     {
-        ST_WARNING("heap empty");
+        ST_ERROR("heap empty");
         return ST_HEAP_EMPTY;
     }
     *obj = heap->data_arr[0];
@@ -219,7 +219,7 @@ int st_heap_extract(st_heap_t* heap, void** obj)
     }
     if(st_heap_fixdown(heap, 0) != ST_HEAP_OK)
     {
-        ST_WARNING("Failed to st_heap_fixdown.");
+        ST_ERROR("Failed to st_heap_fixdown.");
         return ST_HEAP_ERR;
     }
 

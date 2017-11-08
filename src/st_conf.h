@@ -138,7 +138,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_BOOL(pconf, key, var) \
     do{\
         if (st_conf_get_bool(pconf, NULL, key, &var, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
         }\
@@ -147,7 +147,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_BOOL_DEF(pconf, key, var, def) \
     do{\
         if (st_conf_get_bool_def(pconf, NULL, key, &var, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
         }\
@@ -156,7 +156,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_BOOL(pconf, sec, key, var) \
     do {\
         if (st_conf_get_bool(pconf, sec, key, &var, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\
@@ -165,7 +165,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_BOOL_DEF(pconf, sec, key, var, def) \
     do {\
         if (st_conf_get_bool_def(pconf, sec, key, &var, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\
@@ -174,7 +174,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_INT(pconf, key, var) \
     do{\
         if (st_conf_get_int(pconf, NULL, key, &var, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
         }\
@@ -183,7 +183,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_INT_DEF(pconf, key, var, def) \
     do{\
         if (st_conf_get_int_def(pconf, NULL, key, &var, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
         }\
@@ -192,7 +192,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_INT(pconf, sec, key, var) \
     do{\
         if (st_conf_get_int(pconf, sec, key, &var, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\
@@ -201,7 +201,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_INT_DEF(pconf, sec, key, var, def) \
     do{\
         if (st_conf_get_int_def(pconf, sec, key, &var, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\
@@ -210,7 +210,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_UINT(pconf, key, var) \
     do{\
         if (st_conf_get_uint(pconf, NULL, key, &var, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
         }\
@@ -219,7 +219,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_UINT_DEF(pconf, key, var, def) \
     do{\
         if (st_conf_get_uint_def(pconf, NULL, key, &var, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
         }\
@@ -228,7 +228,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_UINT(pconf, sec, key, var) \
     do{\
         if (st_conf_get_uint(pconf, sec, key, &var, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\
@@ -237,7 +237,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_UINT_DEF(pconf, sec, key, var, def) \
     do{\
         if (st_conf_get_uint_def(pconf, sec, key, &var, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\
@@ -246,7 +246,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_LONG(pconf, key, var) \
     do{\
         if (st_conf_get_long(pconf, NULL, key, &var, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
         }\
@@ -255,7 +255,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_LONG_DEF(pconf, key, var, def) \
     do{\
         if (st_conf_get_long_def(pconf, NULL, key, &var, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
         }\
@@ -264,7 +264,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_LONG(pconf, sec, key, var) \
     do{\
         if (st_conf_get_long(pconf, sec, key, &var, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\
@@ -273,7 +273,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_LONG_DEF(pconf, sec, key, var, def) \
     do{\
         if (st_conf_get_long_def(pconf, sec, key, &var, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\
@@ -282,7 +282,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_ULONG(pconf, key, var) \
     do{\
         if (st_conf_get_ulong(pconf, NULL, key, &var, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
         }\
@@ -291,7 +291,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_ULONG_DEF(pconf, key, var, def) \
     do{\
         if (st_conf_get_ulong_def(pconf, NULL, key, &var, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
         }\
@@ -300,7 +300,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_ULONG(pconf, sec, key, var) \
     do{\
         if (st_conf_get_ulong(pconf, sec, key, &var, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\
@@ -309,7 +309,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_ULONG_DEF(pconf, sec, key, var, def) \
     do{\
         if (st_conf_get_ulong_def(pconf, sec, key, &var, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\
@@ -318,7 +318,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_STR(pconf, key, var, len) \
     do{\
         if (st_conf_get_str(pconf, NULL, key, var, len, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
         }\
@@ -327,7 +327,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_STR_DEF(pconf, key, var, len, def) \
     do{\
         if (st_conf_get_str_def(pconf, NULL, key, var, len, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
         }\
@@ -336,7 +336,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_STR(pconf, sec, key, var, len) \
     do{\
         if (st_conf_get_str(pconf, sec, key, var, len, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\
@@ -345,7 +345,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_STR_DEF(pconf, sec, key, var, len, def) \
     do{\
         if (st_conf_get_str_def(pconf, sec, key, var, len, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\
@@ -354,7 +354,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_DOUBLE(pconf, key, var) \
     do{\
         if (st_conf_get_double(pconf, NULL, key, &var, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
         }\
@@ -363,7 +363,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_GET_DOUBLE_DEF(pconf, key, var, def) \
     do{\
         if (st_conf_get_double_def(pconf, NULL, key, &var, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_CONF_ERR; \
     } while(0)
@@ -371,7 +371,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_DOUBLE(pconf, sec, key, var) \
     do{\
         if (st_conf_get_double(pconf, sec, key, &var, NULL) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\
@@ -380,7 +380,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 #define ST_CONF_SEC_GET_DOUBLE_DEF(pconf, sec, key, var, def) \
     do{\
         if (st_conf_get_double_def(pconf, sec, key, &var, def) < 0) {\
-            ST_WARNING("Failed to load key[%s] "\
+            ST_ERROR("Failed to load key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_CONF_ERR; \
         }\

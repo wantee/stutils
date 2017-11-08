@@ -51,12 +51,12 @@ int st_parse_int_array(const char *str, int **arr, int *n_arr)
     while (*q != 0) {
         if (*q == ',') {
             if (n == INT_MAX) {
-                ST_WARNING("Error array: No number found before ','");
+                ST_ERROR("Error array: No number found before ','");
                 return -1;
             }
             *arr = (int *)st_realloc(*arr, sizeof(int)*(*n_arr + 1));
             if (*arr == NULL) {
-                ST_WARNING("Failed to st_realloc array[%d].", *n_arr);
+                ST_ERROR("Failed to st_realloc array[%d].", *n_arr);
                 return -1;
             }
             if (neg) {
@@ -69,12 +69,12 @@ int st_parse_int_array(const char *str, int **arr, int *n_arr)
         } else {
             if (*q == '-') {
                 if (n != INT_MAX) {
-                    ST_WARNING("Error array: found not proper '-'");
+                    ST_ERROR("Error array: found not proper '-'");
                     return -1;
                 }
                 neg = true;
             } else if (*q < '0' || *q > '9') {
-                ST_WARNING("Error array: found non-digit[%c]", *q);
+                ST_ERROR("Error array: found non-digit[%c]", *q);
                 return -1;
             } else {
                 if (n == INT_MAX) {
@@ -88,12 +88,12 @@ int st_parse_int_array(const char *str, int **arr, int *n_arr)
         ++q;
     }
     if (n == INT_MAX) {
-        ST_WARNING("Error array: extra ',' found in the end");
+        ST_ERROR("Error array: extra ',' found in the end");
         return -1;
     }
     *arr = (int *)st_realloc(*arr, sizeof(int)*(*n_arr + 1));
     if (*arr == NULL) {
-        ST_WARNING("Failed to st_realloc array[%d].", *n_arr);
+        ST_ERROR("Failed to st_realloc array[%d].", *n_arr);
         return -1;
     }
     if (neg) {
@@ -134,13 +134,13 @@ int st_parse_wt_int_array(const char *str, st_wt_int_t **arr, int *n_arr,
     while (*q != 0) {
         if (*q == ',') {
             if (n == INT_MAX) {
-                ST_WARNING("Error array: No number found before ','");
+                ST_ERROR("Error array: No number found before ','");
                 return -1;
             }
             *arr = (st_wt_int_t *)st_realloc(*arr,
                     sizeof(st_wt_int_t)*(*n_arr + 1));
             if (*arr == NULL) {
-                ST_WARNING("Failed to st_realloc array[%d].", *n_arr);
+                ST_ERROR("Failed to st_realloc array[%d].", *n_arr);
                 return -1;
             }
             if (neg) {
@@ -173,13 +173,13 @@ int st_parse_wt_int_array(const char *str, st_wt_int_t **arr, int *n_arr,
             if (in_wt) {
                 if (*q == '-') {
                     if (i != INT_MAX) {
-                        ST_WARNING("Error array: found not proper '-'");
+                        ST_ERROR("Error array: found not proper '-'");
                         return -1;
                     }
                     wt_neg = true;
                 } else if (*q == '.') {
                     if (f != FLT_MAX) {
-                        ST_WARNING("Error array: found not proper '-'");
+                        ST_ERROR("Error array: found not proper '-'");
                         return -1;
                     }
                     in_frac = true;
@@ -187,7 +187,7 @@ int st_parse_wt_int_array(const char *str, st_wt_int_t **arr, int *n_arr,
                         i = 0;
                     }
                 } else if (*q < '0' || *q > '9') {
-                    ST_WARNING("Error array: found non-digit[%c]", *q);
+                    ST_ERROR("Error array: found non-digit[%c]", *q);
                     return -1;
                 } else {
                     if (f == FLT_MAX) {
@@ -212,12 +212,12 @@ int st_parse_wt_int_array(const char *str, st_wt_int_t **arr, int *n_arr,
                 } else {
                     if (*q == '-') {
                         if (n != INT_MAX) {
-                            ST_WARNING("Error array: found not proper '-'");
+                            ST_ERROR("Error array: found not proper '-'");
                             return -1;
                         }
                         neg = true;
                     } else if (*q < '0' || *q > '9') {
-                        ST_WARNING("Error array: found non-digit[%c]", *q);
+                        ST_ERROR("Error array: found non-digit[%c]", *q);
                         return -1;
                     } else {
                         if (n == INT_MAX) {
@@ -233,13 +233,13 @@ int st_parse_wt_int_array(const char *str, st_wt_int_t **arr, int *n_arr,
         ++q;
     }
     if (n == INT_MAX) {
-        ST_WARNING("Error array: extra ',' found in the end");
+        ST_ERROR("Error array: extra ',' found in the end");
         return -1;
     }
     *arr = (st_wt_int_t *)st_realloc(*arr,
             sizeof(st_wt_int_t)*(*n_arr + 1));
     if (*arr == NULL) {
-        ST_WARNING("Failed to st_realloc array[%d].", *n_arr);
+        ST_ERROR("Failed to st_realloc array[%d].", *n_arr);
         return -1;
     }
     if (neg) {
@@ -306,7 +306,7 @@ static int st_int_seg_union_insert(st_int_seg_t *segs, int cap_seg,
     if (n > 0) {
         if (e < segs[0].s) {
             if (*n_seg >= cap_seg) {
-                ST_WARNING("Overflow");
+                ST_ERROR("Overflow");
                 return -1;
             }
             memmove(segs + 1, segs, sizeof(st_int_seg_t)*n);
@@ -329,7 +329,7 @@ static int st_int_seg_union_insert(st_int_seg_t *segs, int cap_seg,
 
     if (i == n) {
         if (*n_seg >= cap_seg) {
-            ST_WARNING("Overflow");
+            ST_ERROR("Overflow");
             return -1;
         }
         segs[n].s = s;
@@ -341,7 +341,7 @@ static int st_int_seg_union_insert(st_int_seg_t *segs, int cap_seg,
 
     if (e < segs[i].s) { // insert new set before ith
         if (*n_seg >= cap_seg) {
-            ST_WARNING("Overflow");
+            ST_ERROR("Overflow");
             return -1;
         }
         memmove(segs + i + 1, segs + i, sizeof(st_int_seg_t) * (n - i));
@@ -394,7 +394,7 @@ int st_int_seg_union(st_int_seg_t *union_segs, int cap_union,
             e = size;
             if (st_int_seg_union_insert(union_segs, cap_union,
                         n_union, s, e) < 0) {
-                ST_WARNING("Failed to st_int_seg_union_insert.");
+                ST_ERROR("Failed to st_int_seg_union_insert.");
                 return -1;
             }
 
@@ -402,7 +402,7 @@ int st_int_seg_union(st_int_seg_t *union_segs, int cap_union,
             e = segs[i].n - (size - segs[i].s);
             if (st_int_seg_union_insert(union_segs, cap_union,
                         n_union, s, e) < 0) {
-                ST_WARNING("Failed to st_int_seg_union_insert.");
+                ST_ERROR("Failed to st_int_seg_union_insert.");
                 return -1;
             }
         } else {
@@ -410,7 +410,7 @@ int st_int_seg_union(st_int_seg_t *union_segs, int cap_union,
             e = segs[i].s + segs[i].n;
             if (st_int_seg_union_insert(union_segs, cap_union,
                         n_union, s, e) < 0) {
-                ST_WARNING("Failed to st_int_seg_union_insert.");
+                ST_ERROR("Failed to st_int_seg_union_insert.");
                 return -1;
             }
         }
@@ -434,7 +434,7 @@ static int st_size_seg_union_insert(st_size_seg_t *segs, size_t cap_seg,
     if (n > 0) {
         if (e < segs[0].s) {
             if (*n_seg >= cap_seg) {
-                ST_WARNING("Overflow");
+                ST_ERROR("Overflow");
                 return -1;
             }
             memmove(segs + 1, segs, sizeof(st_size_seg_t)*n);
@@ -457,7 +457,7 @@ static int st_size_seg_union_insert(st_size_seg_t *segs, size_t cap_seg,
 
     if (i == n) {
         if (*n_seg >= cap_seg) {
-            ST_WARNING("Overflow");
+            ST_ERROR("Overflow");
             return -1;
         }
         segs[n].s = s;
@@ -469,7 +469,7 @@ static int st_size_seg_union_insert(st_size_seg_t *segs, size_t cap_seg,
 
     if (e < segs[i].s) { // insert new set before ith
         if (*n_seg >= cap_seg) {
-            ST_WARNING("Overflow");
+            ST_ERROR("Overflow");
             return -1;
         }
         memmove(segs + i + 1, segs + i, sizeof(st_size_seg_t) * (n - i));
@@ -522,7 +522,7 @@ int st_size_seg_union(st_size_seg_t *union_segs, size_t cap_union,
             e = size;
             if (st_size_seg_union_insert(union_segs, cap_union,
                         n_union, s, e) < 0) {
-                ST_WARNING("Failed to st_size_seg_union_insert.");
+                ST_ERROR("Failed to st_size_seg_union_insert.");
                 return -1;
             }
 
@@ -530,7 +530,7 @@ int st_size_seg_union(st_size_seg_t *union_segs, size_t cap_union,
             e = segs[i].n - (size - segs[i].s);
             if (st_size_seg_union_insert(union_segs, cap_union,
                         n_union, s, e) < 0) {
-                ST_WARNING("Failed to st_size_seg_union_insert.");
+                ST_ERROR("Failed to st_size_seg_union_insert.");
                 return -1;
             }
         } else {
@@ -538,7 +538,7 @@ int st_size_seg_union(st_size_seg_t *union_segs, size_t cap_union,
             e = segs[i].s + segs[i].n;
             if (st_size_seg_union_insert(union_segs, cap_union,
                         n_union, s, e) < 0) {
-                ST_WARNING("Failed to st_size_seg_union_insert.");
+                ST_ERROR("Failed to st_size_seg_union_insert.");
                 return -1;
             }
         }

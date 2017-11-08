@@ -120,7 +120,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_GET_BOOL(pconf, key, var, def, desc) \
     do{\
         if (st_opt_get_bool(pconf, NULL, key, &var, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_OPT_ERR; \
         }\
@@ -129,7 +129,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_SEC_GET_BOOL(pconf, sec, key, var, def, desc) \
     do {\
         if (st_opt_get_bool(pconf, sec, key, &var, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_OPT_ERR; \
         }\
@@ -138,7 +138,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_GET_INT(pconf, key, var, def, desc) \
     do{\
         if (st_opt_get_int(pconf, NULL, key, &var, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_OPT_ERR; \
         }\
@@ -147,7 +147,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_SEC_GET_INT(pconf, sec, key, var, def, desc) \
     do{\
         if (st_opt_get_int(pconf, sec, key, &var, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_OPT_ERR; \
         }\
@@ -156,7 +156,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_GET_UINT(pconf, key, var, def, desc) \
     do{\
         if (st_opt_get_uint(pconf, NULL, key, &var, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_OPT_ERR; \
         }\
@@ -165,7 +165,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_SEC_GET_UINT(pconf, sec, key, var, def, desc) \
     do{\
         if (st_opt_get_uint(pconf, sec, key, &var, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_OPT_ERR; \
         }\
@@ -174,7 +174,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_GET_LONG(pconf, key, var, def, desc) \
     do{\
         if (st_opt_get_long(pconf, NULL, key, &var, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_OPT_ERR; \
         }\
@@ -183,7 +183,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_SEC_GET_LONG(pconf, sec, key, var, def, desc) \
     do{\
         if (st_opt_get_long(pconf, sec, key, &var, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_OPT_ERR; \
         }\
@@ -192,7 +192,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_GET_ULONG(pconf, key, var, def, desc) \
     do{\
         if (st_opt_get_ulong(pconf, NULL, key, &var, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_OPT_ERR; \
         }\
@@ -201,7 +201,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_SEC_GET_ULONG(pconf, sec, key, var, def, desc) \
     do{\
         if (st_opt_get_ulong(pconf, sec, key, &var, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_OPT_ERR; \
         }\
@@ -210,7 +210,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_GET_STR(pconf, key, var, len, def, desc) \
     do{\
         if (st_opt_get_str(pconf, NULL, key, var, len, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_OPT_ERR; \
         }\
@@ -219,7 +219,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_SEC_GET_STR(pconf, sec, key, var, len, def, desc) \
     do{\
         if (st_opt_get_str(pconf, sec, key, var, len, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_OPT_ERR; \
         }\
@@ -228,7 +228,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_GET_DOUBLE(pconf, key, var, def, desc) \
     do{\
         if (st_opt_get_double(pconf, NULL, key, &var, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_OPT_ERR; \
     } while(0)
@@ -236,7 +236,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
 #define ST_OPT_SEC_GET_DOUBLE(pconf, sec, key, var, def, desc) \
     do{\
         if (st_opt_get_double(pconf, sec, key, &var, def, desc) < 0) {\
-            ST_WARNING("Failed to getopt key[%s] "\
+            ST_ERROR("Failed to getopt key[%s] "\
                     "in section[%s].", key, sec);\
             goto ST_OPT_ERR; \
         }\

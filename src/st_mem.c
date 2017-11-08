@@ -46,7 +46,7 @@ bool g_collect_usage = false;
 int st_mem_usage_init()
 {
     if (pthread_mutex_init(&g_usage.lock, NULL) != 0) {
-        ST_WARNING("Failed to pthread_mutex_init lock.");
+        ST_ERROR("Failed to pthread_mutex_init lock.");
         return -1;
     }
 
@@ -88,14 +88,14 @@ void* st_malloc_impl(size_t size)
 
     p = (size_t *)malloc(size + sizeof(size_t));
     if (p == NULL) {
-        ST_WARNING("Failed to malloc[%zu].", size + sizeof(size_t));
+        ST_ERROR("Failed to malloc[%zu].", size + sizeof(size_t));
         return NULL;
     }
 
     p[0] = size; // store size
 
     if (pthread_mutex_lock(&g_usage.lock) != 0) {
-        ST_WARNING("Failed to pthread_mutex_lock.");
+        ST_ERROR("Failed to pthread_mutex_lock.");
         return NULL;
     }
 
@@ -106,7 +106,7 @@ void* st_malloc_impl(size_t size)
     g_usage.num_allocs++;
 
     if (pthread_mutex_unlock(&g_usage.lock) != 0) {
-        ST_WARNING("Failed to pthread_mutex_unlock.");
+        ST_ERROR("Failed to pthread_mutex_unlock.");
         return NULL;
     }
 
@@ -132,14 +132,14 @@ void* st_realloc_impl(void *ptr, size_t size)
 
     p = (size_t *)realloc(p, size + sizeof(size_t));
     if (p == NULL) {
-        ST_WARNING("Failed to realloc[%zu].", size + sizeof(size_t));
+        ST_ERROR("Failed to realloc[%zu].", size + sizeof(size_t));
         return NULL;
     }
 
     p[0] = size; // store size
 
     if (pthread_mutex_lock(&g_usage.lock) != 0) {
-        ST_WARNING("Failed to pthread_mutex_lock.");
+        ST_ERROR("Failed to pthread_mutex_lock.");
         return NULL;
     }
 
@@ -153,7 +153,7 @@ void* st_realloc_impl(void *ptr, size_t size)
     }
 
     if (pthread_mutex_unlock(&g_usage.lock) != 0) {
-        ST_WARNING("Failed to pthread_mutex_unlock.");
+        ST_ERROR("Failed to pthread_mutex_unlock.");
         return NULL;
     }
 
@@ -176,7 +176,7 @@ void st_free(void *p)
     free(p1 - 1);
 
     if (pthread_mutex_lock(&g_usage.lock) != 0) {
-        ST_WARNING("Failed to pthread_mutex_lock.");
+        ST_ERROR("Failed to pthread_mutex_lock.");
         return;
     }
 
@@ -184,7 +184,7 @@ void st_free(void *p)
     g_usage.num_frees++;
 
     if (pthread_mutex_unlock(&g_usage.lock) != 0) {
-        ST_WARNING("Failed to pthread_mutex_unlock.");
+        ST_ERROR("Failed to pthread_mutex_unlock.");
         return;
     }
 }
@@ -209,14 +209,14 @@ void* st_aligned_malloc_impl(size_t size, size_t alignment)
     size_t padding;
 
     if (!is_power_of_two(alignment)) {
-        ST_WARNING("alignment[%zu] is not power of 2.", alignment);
+        ST_ERROR("alignment[%zu] is not power of 2.", alignment);
         return NULL;
     }
 
     padding = alignment - 1 + 3 * sizeof(size_t);
     p1 = (void *)malloc(size + padding);
     if (p1 == NULL) {
-        ST_WARNING("Failed to malloc[%zu].", size + padding);
+        ST_ERROR("Failed to malloc[%zu].", size + padding);
         return NULL;
     }
     p2 = (void *)(((size_t)p1 + padding) & ~(alignment - 1)); // insert padding
@@ -227,7 +227,7 @@ void* st_aligned_malloc_impl(size_t size, size_t alignment)
 
     if (g_collect_usage) {
         if (pthread_mutex_lock(&g_usage.lock) != 0) {
-            ST_WARNING("Failed to pthread_mutex_lock.");
+            ST_ERROR("Failed to pthread_mutex_lock.");
             return NULL;
         }
 
@@ -238,7 +238,7 @@ void* st_aligned_malloc_impl(size_t size, size_t alignment)
         g_usage.num_allocs++;
 
         if (pthread_mutex_unlock(&g_usage.lock) != 0) {
-            ST_WARNING("Failed to pthread_mutex_unlock.");
+            ST_ERROR("Failed to pthread_mutex_unlock.");
             return NULL;
         }
     }
@@ -255,14 +255,14 @@ void* st_aligned_realloc_impl(void *ptr, size_t size, size_t alignment)
     size_t padding;
 
     if (!is_power_of_two(alignment)) {
-        ST_WARNING("alignment[%zu] is not power of 2.", alignment);
+        ST_ERROR("alignment[%zu] is not power of 2.", alignment);
         return NULL;
     }
 
     if (ptr == NULL) {
         q2 = st_aligned_malloc(size, alignment);
         if (q2 == NULL) {
-            ST_WARNING("Failed to st_aligned_malloc.");
+            ST_ERROR("Failed to st_aligned_malloc.");
             return NULL;
         }
 
@@ -279,7 +279,7 @@ void* st_aligned_realloc_impl(void *ptr, size_t size, size_t alignment)
     padding = alignment - 1 + 3 * sizeof(size_t);
     q1 = (void *)realloc(p1, size + padding);
     if (q1 == NULL) {
-        ST_WARNING("Failed to realloc[%zu].", size + padding);
+        ST_ERROR("Failed to realloc[%zu].", size + padding);
         q2 = NULL;
         goto RET;
     }
@@ -317,7 +317,7 @@ REALIGN:
 RET:
     if (g_collect_usage) {
         if (pthread_mutex_lock(&g_usage.lock) != 0) {
-            ST_WARNING("Failed to pthread_mutex_lock.");
+            ST_ERROR("Failed to pthread_mutex_lock.");
             return NULL;
         }
 
@@ -332,7 +332,7 @@ RET:
         }
 
         if (pthread_mutex_unlock(&g_usage.lock) != 0) {
-            ST_WARNING("Failed to pthread_mutex_unlock.");
+            ST_ERROR("Failed to pthread_mutex_unlock.");
             return NULL;
         }
     }
@@ -354,7 +354,7 @@ void st_aligned_free(void *p)
 
     if (g_collect_usage) {
         if (pthread_mutex_lock(&g_usage.lock) != 0) {
-            ST_WARNING("Failed to pthread_mutex_lock.");
+            ST_ERROR("Failed to pthread_mutex_lock.");
             return;
         }
 
@@ -362,7 +362,7 @@ void st_aligned_free(void *p)
         g_usage.num_frees++;
 
         if (pthread_mutex_unlock(&g_usage.lock) != 0) {
-            ST_WARNING("Failed to pthread_mutex_unlock.");
+            ST_ERROR("Failed to pthread_mutex_unlock.");
             return;
         }
     }

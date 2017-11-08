@@ -47,7 +47,7 @@ st_stack_t* st_stack_create(st_stack_id_t capacity)
     st_stack = (st_stack_t*)st_malloc(sizeof(st_stack_t));
     if(NULL == st_stack)
     {
-        ST_WARNING("alloc memory for st_stack failed");
+        ST_ERROR("alloc memory for st_stack failed");
         return NULL;
     }
     memset(st_stack, 0, sizeof(st_stack_t));
@@ -57,7 +57,7 @@ st_stack_t* st_stack_create(st_stack_id_t capacity)
     st_stack->data_arr = (void **)st_malloc(sizeof(void *)*capacity);
     if(NULL == st_stack->data_arr)
     {
-        ST_WARNING("alloc memory for data_arr failed");
+        ST_ERROR("alloc memory for data_arr failed");
         goto ERR;
     }
     memset(st_stack->data_arr, 0, sizeof(void*)*capacity);
@@ -73,7 +73,7 @@ int st_stack_push(st_stack_t* st_stack, void* obj)
 {
     if(st_stack->top == st_stack->capacity)
     {
-        ST_WARNING("st_stack overflow");
+        ST_ERROR("st_stack overflow");
         return ST_STACK_FULL;
     }
 
@@ -86,7 +86,7 @@ int st_stack_pop(st_stack_t* st_stack, void** obj)
 {
     if(st_stack->top == 0)
     {
-        ST_WARNING("st_stack empty");
+        ST_ERROR("st_stack empty");
         return ST_STACK_EMPTY;
     }
 
@@ -127,7 +127,7 @@ int st_stack_topn(st_stack_t* st_stack, st_stack_id_t n, void** obj)
 {
     if(st_stack->top <= n - 1)
     {
-        ST_WARNING("st_stack empty");
+        ST_ERROR("st_stack empty");
         return ST_STACK_EMPTY;
     }
 

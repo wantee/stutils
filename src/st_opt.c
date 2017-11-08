@@ -47,7 +47,7 @@ static int resize_opt_info(st_opt_t *opt)
         opt->infos = (st_opt_info_t *)st_realloc(opt->infos,
                     opt->info_cap * sizeof(st_opt_info_t));
         if (opt->infos == NULL) {
-            ST_WARNING("Failed to st_realloc st_opt_info.");
+            ST_ERROR("Failed to st_realloc st_opt_info.");
             goto ERR;
         }
         memset(opt->infos + opt->info_num, 0,
@@ -91,20 +91,20 @@ st_opt_t* st_opt_create()
 
     opt = (st_opt_t *) st_malloc(sizeof(st_opt_t));
     if (opt == NULL) {
-        ST_WARNING("Failed to st_malloc st_opt.");
+        ST_ERROR("Failed to st_malloc st_opt.");
         goto ERR;
     }
     memset(opt, 0, sizeof(st_opt_t));
 
     opt->cmd_conf = st_conf_create();
     if (opt->cmd_conf == NULL) {
-        ST_WARNING("Failed to st_opt_create cmd_conf.");
+        ST_ERROR("Failed to st_opt_create cmd_conf.");
         goto ERR;
     }
 
     opt->infos = (st_opt_info_t *)st_malloc(sizeof(st_opt_info_t)*INFO_NUM);
     if (opt->infos == NULL) {
-        ST_WARNING("Failed to st_malloc st_opt_info.");
+        ST_ERROR("Failed to st_malloc st_opt_info.");
         goto ERR;
     }
     memset(opt->infos, 0, sizeof(st_opt_info_t)*INFO_NUM);
@@ -255,7 +255,7 @@ static int st_opt_add_info(st_opt_t *opt, st_opt_type_t type,
     st_opt_info_t *info;
 
     if (resize_opt_info(opt) < 0) {
-        ST_WARNING("Failed to resize_opt_info.");
+        ST_ERROR("Failed to resize_opt_info.");
         return -1;
     }
 
@@ -299,7 +299,7 @@ static int st_opt_add_info(st_opt_t *opt, st_opt_type_t type,
             info->sval[MAX_ST_CONF_LEN - 1] = '\0';
             break;
         default:
-            ST_WARNING("Unkown Option type");
+            ST_ERROR("Unkown Option type");
             return -1;
     }
 
@@ -387,14 +387,14 @@ int st_opt_parse_one(st_opt_t *opt, int *argc, const char *argv[])
 
     num_kv = split_line(argv[arg] + 2, key_value, 2, MAX_LINE_LEN, "=");
     if (num_kv != 1 && num_kv != 2) {
-        ST_WARNING("Failed error option[%s]", argv[arg]);
+        ST_ERROR("Failed error option[%s]", argv[arg]);
         return -1;
     }
     if (num_kv == 1) {
         if (strcasecmp(key_value, "help") == 0) {
             strcpy(key_value + MAX_LINE_LEN, "true");
         } else {
-            ST_WARNING("Error Format(--key=value): [%s]", argv[arg]);
+            ST_ERROR("Error Format(--key=value): [%s]", argv[arg]);
             return -1;
         }
     }
@@ -418,27 +418,27 @@ int st_opt_parse_one(st_opt_t *opt, int *argc, const char *argv[])
         st_opt_normalize_key(sec_key, false);
         sec = st_conf_new_sec(opt->cmd_conf, sec_key);
         if (sec == NULL) {
-            ST_WARNING("Failed to st_conf_new_sec.");
+            ST_ERROR("Failed to st_conf_new_sec.");
             return -1;
         }
 
         st_opt_normalize_key(key, false);
         if (st_conf_add_param(sec, key, key_value + MAX_LINE_LEN) < 0) {
-            ST_WARNING("Failed to st_conf_add_param. key[%s], value[%s]",
+            ST_ERROR("Failed to st_conf_add_param. key[%s], value[%s]",
                     sec_key + MAX_LINE_LEN, key_value + MAX_LINE_LEN);
             return -1;
         }
     } else {
         sec = st_conf_def_sec(opt->cmd_conf);
         if (sec == NULL) {
-            ST_WARNING("ERROR: No default section");
+            ST_ERROR("ERROR: No default section");
             return -1;
         }
 
         st_opt_normalize_key(sec_key, false);
         if (st_conf_add_param(sec, sec_key,
                     key_value + MAX_LINE_LEN) < 0) {
-            ST_WARNING("Failed to st_conf_add_param. key[%s], value[%s]",
+            ST_ERROR("Failed to st_conf_add_param. key[%s], value[%s]",
                     sec_key, key_value + MAX_LINE_LEN);
             return -1;
         }
@@ -464,12 +464,12 @@ int st_opt_parse(st_opt_t *opt, int *argc, const char *argv[])
 
             opt->file_conf = st_conf_create();
             if (opt->file_conf == NULL) {
-                ST_WARNING("Failed to st_opt_create file_conf.");
+                ST_ERROR("Failed to st_opt_create file_conf.");
                 return -1;
             }
 
             if (st_conf_load(opt->file_conf, file) < 0) {
-                ST_WARNING("Failed to st_conf_load from [%s].", file);
+                ST_ERROR("Failed to st_conf_load from [%s].", file);
                 return -1;
             }
         }

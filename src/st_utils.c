@@ -427,7 +427,7 @@ int st_insert(void *base, size_t cap, size_t sz, size_t *num, size_t *pos,
     for (i = 0; i < *num; i++) {
         cmp_ret = cmp(base + i * sz, elem, args);
         if (cmp_ret == ST_CMP_ERR) {
-            ST_WARNING("Compare error between input elem and [%zu]th elem.", i);
+            ST_ERROR("Compare error between input elem and [%zu]th elem.", i);
             return -1;
         } else if (cmp_ret == ST_CMP_EQUAL) {
             if (pos != NULL) {
@@ -440,7 +440,7 @@ int st_insert(void *base, size_t cap, size_t sz, size_t *num, size_t *pos,
     }
 
     if (*num + 1 > cap) {
-        ST_WARNING("overflow");
+        ST_ERROR("overflow");
         return -1;
     }
 

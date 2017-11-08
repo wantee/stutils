@@ -103,14 +103,14 @@ typedef unsigned int uint;
 #define ST_CHECK_PARAM_VOID(cond) \
     if(cond) \
     {\
-        ST_WARNING("Wrong param to %s. ", __func__);\
+        ST_ERROR("Wrong param to %s. ", __func__);\
         return;\
     }
 
 #define ST_CHECK_PARAM_VOID_EX(cond, fmt, ...) \
     if(cond) \
     {\
-        ST_WARNING("Wrong param to %s. " fmt, __func__, ##__VA_ARGS__);\
+        ST_ERROR("Wrong param to %s. " fmt, __func__, ##__VA_ARGS__);\
         return;\
     }
 
@@ -119,7 +119,7 @@ typedef unsigned int uint;
 #define ST_CHECK_PARAM_EX(cond, ret, fmt, ...) \
     if(cond) \
     {\
-        ST_WARNING("Wrong param to %s. " fmt, __func__, ##__VA_ARGS__);\
+        ST_ERROR("Wrong param to %s. " fmt, __func__, ##__VA_ARGS__);\
         return ret;\
     }
 #endif
