@@ -104,7 +104,7 @@ int st_log_load_opt(st_log_opt_t *log_opt, st_opt_t *st_opt,
     ST_OPT_GET_STR(st_opt, "LOG_FILE",
             log_opt->file, MAX_DIR_LEN, DEFAULT_LOGFILE, "Log file");
     ST_OPT_GET_INT(st_opt, "LOG_LEVEL", log_opt->level,
-                     DEFAULT_LOGLEVEL, "Log level (1-8)");
+                     DEFAULT_LOGLEVEL, "Log level (1-9)");
 
     return 0;
 

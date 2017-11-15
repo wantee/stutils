@@ -48,7 +48,7 @@ typedef struct _st_log_opt_t_ {
 } st_log_opt_t;
 
 #define DEFAULT_LOGFILE         "/dev/stderr"
-#define DEFAULT_LOGLEVEL        8
+#define DEFAULT_LOGLEVEL        9
 
 int st_log_load_opt(st_log_opt_t *log_opt, st_opt_t *st_opt,
         const char *sec_name);
