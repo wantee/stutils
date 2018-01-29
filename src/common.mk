@@ -69,13 +69,13 @@ $(OUT_INCS) : $(OUTINC_DIR)/$(PROJECT)/%.h : %.h
 
 ifdef STATIC_LINK
 
-$(TARGET_LIB) : $(addprefix $(OBJ_DIR)/,$(SRCS:.c=.o))
+$(TARGET_LIB) : $(patsubst %,$(OBJ_DIR)/%.o,$(basename $(SRCS)))
 	@mkdir -p "$(dir $@)"
 	ar rcs $@ $^
 
 else
 
-$(TARGET_LIB) : $(addprefix $(OBJ_DIR)/,$(SRCS:.c=.o))
+$(TARGET_LIB) : $(patsubst %,$(OBJ_DIR)/%.o,$(basename $(SRCS)))
 	@mkdir -p "$(dir $@)"
 	$(LINK.o) $(SO_FLAGS) $^ -o $@
 
