@@ -60,9 +60,19 @@ double st_random(double min, double max)
     return st_random_r(min, max, &st_rand_state);
 }
 
+double st_uniform()
+{
+    return st_random(0.0, 1.0);
+}
+
 double st_random_r(double min, double max, unsigned int *seed)
 {
     return st_rand_r(seed) / (double) ST_RAND_MAX *(max - min) + min;
+}
+
+double st_uniform_r(unsigned int *seed)
+{
+    return st_random_r(0.0, 1.0, seed);
 }
 
 void st_shuffle(int *a, size_t n)
@@ -169,6 +179,36 @@ double st_gaussrand_r(st_gauss_r_t *gauss)
     gauss->phase = 1 - gauss->phase;
 
     return ((gauss->stdev * X) + gauss->mean);
+}
+
+void st_gaussrand2_r(double *a, double *b, unsigned *seed)
+{
+    double u1;
+    double u2;
+
+    u1 = st_uniform_r(seed);
+    u2 = st_uniform_r(seed);
+
+    u1 = sqrt(-2.0 * log(u1));
+    u2 =  2.0 * M_PI * u2;
+    *a = u1 * cos(u2);
+    *b = u1 * sin(u2);
+}
+
+void st_gaussrand2(double *a, double *b)
+{
+    st_gaussrand2_r(a, b, &st_rand_state);
+}
+
+double st_gaussrand1_r(unsigned *seed)
+{
+    return sqrt(-2.0 * log(st_uniform_r(seed)))
+           * cos(2.0 * M_PI * st_uniform_r(seed));
+}
+
+double st_gaussrand1()
+{
+    return st_gaussrand1_r(&st_rand_state);
 }
 
 double st_trunc_normrand(double mean, double stdev, double boundary)

@@ -38,13 +38,16 @@ extern "C" {
 #define ST_RAND_MAX        2147483647
 int st_rand();
 double st_random(double min, double max);
+double st_uniform();
 int st_rand_r(unsigned int *seed);
 double st_random_r(double min, double max, unsigned int *seed);
+double st_uniform_r(unsigned int *seed);
 void st_srand(unsigned int seed);
 
 void st_shuffle(int *a, size_t n);
 void st_shuffle_r(int *a, size_t n, unsigned *rand);
 
+/* gaussrand with Marsaglia polar method */
 typedef struct _st_gauss_r_t {
     double mean;
     double stdev;
@@ -62,6 +65,12 @@ double st_normrand(double mean, double stdev);
 void st_gauss_r_init(st_gauss_r_t *gauss, double mean,
         double stdev, unsigned seed);
 double st_gaussrand_r(st_gauss_r_t *gauss);
+
+/* gaussrand with Box–Muller transform */
+void st_gaussrand2(double *a, double *b);
+void st_gaussrand2_r(double *a, double *b, unsigned *seed);
+double st_gaussrand1();
+double st_gaussrand1_r(unsigned *seed);
 
 /**
  * Outputs random values from a truncated normal distribution.
