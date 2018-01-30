@@ -5,7 +5,7 @@ ifndef STATIC_LINK
 COMPILE.c += -fPIC
 COMPILE.cc += -fPIC
 endif
-LINK.o = $(CC) $(LDFLAGS) $(TARGET_ARCH)
+LINK.o = $(CC) $(LDFLAGS) $(LDLIBS) $(TARGET_ARCH)
 POSTCOMPILE = mv -f $(DEP_DIR)/$*.Td $(DEP_DIR)/$*.d
 COMPILE_bin.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) -o $@ $< -l$(PROJECT) $(LDFLAGS)
 COMPILE_bin.cc = $(CC) $(DEPFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $< -L$(OUTLIB_DIR) -l$(PROJECT) $(LDFLAGS)
