@@ -65,13 +65,13 @@ $(DEP_DIR)/%.d: ;
 
 -include $(patsubst %,$(DEP_DIR)/%.d,$(basename $(SRCS)))
 
-$(TARGET_BINS) : $(OUT_REV) $(TARGET_LIB)
+$(TARGET_BINS) : $(PREFIX)inc $(TARGET_LIB)
 
 -include $(patsubst %,$(DEP_DIR)/%.d,$(basename $(BINS)))
 
 TARGET_TESTS = $(addprefix $(OBJ_DIR)/,$(TESTS))
 
-$(TARGET_TESTS) : $(OUT_REV) $(TARGET_LIB)
+$(TARGET_TESTS) : $(OUT_INCS) $(OUT_REV) $(TARGET_LIB)
 
 -include $(patsubst %,$(DEP_DIR)/%.d,$(basename $(TESTS)))
 
