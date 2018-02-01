@@ -63,7 +63,7 @@ int st_log_close(int err);
 
 /*@ignore@*/
 #define ST_LOG(lev, fmt, ...) \
-    st_log_write(lev, "[%s:%d<<%s>>] " fmt, __FILE__, __LINE__, __func__, \
+    st_log_write(lev, "[%s:%d<<%s>>] " fmt, __FILE__, __LINE__, _ST_FUNC_, \
     ##__VA_ARGS__);
 
 #define ST_FATAL(fmt, ...) \

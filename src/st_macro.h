@@ -94,6 +94,12 @@ typedef unsigned int uint;
     } while(0)
 
 /*@ignore@*/
+#ifdef __GNUC__
+#define _ST_FUNC_ __PRETTY_FUNCTION__
+#else
+#define _ST_FUNC_ __func__
+#endif
+
 #ifdef _ST_NO_CHECK_PARAM_
 #define ST_CHECK_PARAM_VOID(cond)
 #define ST_CHECK_PARAM_VOID_EX(cond, fmt, ...)
@@ -103,14 +109,14 @@ typedef unsigned int uint;
 #define ST_CHECK_PARAM_VOID(cond) \
     if(cond) \
     {\
-        ST_ERROR("Wrong param to %s. ", __func__);\
+        ST_ERROR("Wrong param to %s. ", _ST_FUNC_);\
         return;\
     }
 
 #define ST_CHECK_PARAM_VOID_EX(cond, fmt, ...) \
     if(cond) \
     {\
-        ST_ERROR("Wrong param to %s. " fmt, __func__, ##__VA_ARGS__);\
+        ST_ERROR("Wrong param to %s. " fmt, _ST_FUNC_, ##__VA_ARGS__);\
         return;\
     }
 
@@ -119,7 +125,7 @@ typedef unsigned int uint;
 #define ST_CHECK_PARAM_EX(cond, ret, fmt, ...) \
     if(cond) \
     {\
-        ST_ERROR("Wrong param to %s. " fmt, __func__, ##__VA_ARGS__);\
+        ST_ERROR("Wrong param to %s. " fmt, _ST_FUNC_, ##__VA_ARGS__);\
         return ret;\
     }
 #endif

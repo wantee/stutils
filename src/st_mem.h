@@ -86,10 +86,10 @@ void* st_aligned_malloc_wrapper(size_t size, size_t alignment,
 void* st_aligned_realloc_wrapper(void *ptr, size_t size, size_t alignment,
         const char *file, size_t line, const char *func);
 
-#define st_malloc(sz) st_malloc_wrapper(sz, __FILE__, __LINE__, __func__)
-#define st_realloc(p, sz) st_realloc_wrapper(p, sz, __FILE__, __LINE__, __func__)
-#define st_aligned_malloc(sz, ali) st_aligned_malloc_wrapper(sz, ali, __FILE__, __LINE__, __func__)
-#define st_aligned_realloc(p, sz, ali) st_aligned_realloc_wrapper(p, sz, ali, __FILE__, __LINE__, __func__)
+#define st_malloc(sz) st_malloc_wrapper(sz, __FILE__, __LINE__, _ST_FUNC_)
+#define st_realloc(p, sz) st_realloc_wrapper(p, sz, __FILE__, __LINE__, _ST_FUNC_)
+#define st_aligned_malloc(sz, ali) st_aligned_malloc_wrapper(sz, ali, __FILE__, __LINE__, _ST_FUNC_)
+#define st_aligned_realloc(p, sz, ali) st_aligned_realloc_wrapper(p, sz, ali, __FILE__, __LINE__, _ST_FUNC_)
 
 #else //_ST_MEM_DEBUG_
 
