@@ -1,6 +1,10 @@
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.Td
-LINK.o = $(LD) $(LDFLAGS) $(LDLIBS) $(TARGET_ARCH)
 POSTCOMPILE = mv -f $(DEP_DIR)/$*.Td $(DEP_DIR)/$*.d
+
+COMPILE.flags = $(DEPFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
+LINK.flags = $(LDFLAGS) $(LDLIBS) $(TARGET_ARCH)
+
+LINK.o = $(LD) $(LINK.flags)
 
 ifdef STATIC_LINK
   TARGET_LIB=$(OBJ_DIR)/lib$(PROJECT).a
