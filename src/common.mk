@@ -1,27 +1,6 @@
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.Td
-COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
-COMPILE.cc = $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
-ifndef STATIC_LINK
-COMPILE.c += -fPIC
-COMPILE.cc += -fPIC
-endif
 LINK.o = $(LD) $(LDFLAGS) $(LDLIBS) $(TARGET_ARCH)
 POSTCOMPILE = mv -f $(DEP_DIR)/$*.Td $(DEP_DIR)/$*.d
-COMPILE_bin.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) -o $@ $< -l$(PROJECT) $(LDFLAGS)
-COMPILE_bin.cc = $(CC) $(DEPFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $< -L$(OUTLIB_DIR) -l$(PROJECT) $(LDFLAGS)
-COMPILE_test_bin.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) -UNDEBUG -o $@ $<  -L$(OUTLIB_DIR) -l$(PROJECT) $(LDFLAGS)
-COMPILE_test_bin.cc = $(CC) $(DEPFLAGS) $(CXXFLAGS) $(CPPFLAGS) -UNDEBUG -o $@ $< -L$(OUTLIB_DIR) -l$(PROJECT) $(LDFLAGS)
-ifdef STATIC_LINK
-COMPILE_bin.c += -L$(OBJ_DIR) -Wl,-rpath,'$$ORIGIN/../lib'
-COMPILE_bin.cc += -L$(OBJ_DIR) -Wl,-rpath,'$$ORIGIN/../lib'
-COMPILE_test_bin.c += -L$(OBJ_DIR)
-COMPILE_test_bin.cc += -L$(OBJ_DIR)
-else
-COMPILE_bin.c += -L$(OUTLIB_DIR) -Wl,-rpath,$(abspath $(OUTLIB_DIR)) -Wl,-rpath,'$$ORIGIN/../lib'
-COMPILE_bin.cc += -L$(OUTLIB_DIR) -Wl,-rpath,$(abspath $(OUTLIB_DIR)) -Wl,-rpath,'$$ORIGIN/../lib'
-COMPILE_test_bin.c += -L$(OUTLIB_DIR) -Wl,-rpath,$(abspath $(OUTLIB_DIR))
-COMPILE_test_bin.cc += -L$(OUTLIB_DIR) -Wl,-rpath,$(abspath $(OUTLIB_DIR))
-endif
 
 ifdef STATIC_LINK
   TARGET_LIB=$(OBJ_DIR)/lib$(PROJECT).a
@@ -81,52 +60,18 @@ $(TARGET_LIB) : $(patsubst %,$(OBJ_DIR)/%.o,$(basename $(SRCS)))
 
 endif
 
-$(OBJ_DIR)/%.o : %.c $(DEP_DIR)/%.d $(OUT_REV)
-	@mkdir -p "$(dir $@)"
-	@mkdir -p "$(dir $(DEP_DIR)/$*.d)"
-	$(COMPILE.c) $(OUTPUT_OPTION) $<
-	$(POSTCOMPILE)
-
-$(OBJ_DIR)/%.o : %.cc $(DEP_DIR)/%.d $(OUT_REV)
-	@mkdir -p "$(dir $@)"
-	@mkdir -p "$(dir $(DEP_DIR)/$*.d)"
-	$(COMPILE.cc) $(OUTPUT_OPTION) $<
-	$(POSTCOMPILE)
-
-$(OBJ_DIR)/%.o : %.cxx $(DEP_DIR)/%.d $(OUT_REV)
-	@mkdir -p "$(dir $@)"
-	@mkdir -p "$(dir $(DEP_DIR)/$*.d)"
-	$(COMPILE.cc) $(OUTPUT_OPTION) $<
-	$(POSTCOMPILE)
-
-$(OBJ_DIR)/%.o : %.cpp $(DEP_DIR)/%.d $(OUT_REV)
-	@mkdir -p "$(dir $@)"
-	@mkdir -p "$(dir $(DEP_DIR)/$*.d)"
-	$(COMPILE.cc) $(OUTPUT_OPTION) $<
-	$(POSTCOMPILE)
-
 $(DEP_DIR)/%.d: ;
 .PRECIOUS: $(DEP_DIR)/%.d
 
 -include $(patsubst %,$(DEP_DIR)/%.d,$(basename $(SRCS)))
 
 $(TARGET_BINS) : $(OUT_REV) $(TARGET_LIB)
-$(TARGET_BINS) : $(OUTBIN_DIR)/% : %.c $(DEP_DIR)/%.d
-	@mkdir -p "$(dir $@)"
-	@mkdir -p "$(dir $(DEP_DIR)/$*.d)"
-	$(COMPILE_bin.c)
-	$(POSTCOMPILE)
 
 -include $(patsubst %,$(DEP_DIR)/%.d,$(basename $(BINS)))
 
 TARGET_TESTS = $(addprefix $(OBJ_DIR)/,$(TESTS))
 
 $(TARGET_TESTS) : $(OUT_REV) $(TARGET_LIB)
-$(TARGET_TESTS) : $(OBJ_DIR)/% : %.c $(DEP_DIR)/%.d
-	@mkdir -p "$(dir $@)"
-	@mkdir -p "$(dir $(DEP_DIR)/$*.d)"
-	$(COMPILE_test_bin.c)
-	$(POSTCOMPILE)
 
 -include $(patsubst %,$(DEP_DIR)/%.d,$(basename $(TESTS)))
 
@@ -185,7 +130,11 @@ $(PREFIX)clean-test:
 
 endif
 
-$(PREFIX)clean: $(PREFIX)clean-bin clean-static
+ifdef clean-static
+$(PREFIX)clean: clean-static
+endif
+
+$(PREFIX)clean: $(PREFIX)clean-bin
 	rm -rf $(OBJ_DIR)
 	rm -rf $(DEP_DIR)
 	rm -f $(TARGET_LIB)

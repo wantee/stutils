@@ -71,4 +71,4 @@ VAL_TESTS = tests/st-utils-test \
 all:
 
 include common_static.mk
-include common.mk
+include common_c.mk
