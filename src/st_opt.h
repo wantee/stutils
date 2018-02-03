@@ -231,6 +231,7 @@ int st_opt_get_bool(st_opt_t *popt, const char *sec_name,
             ST_ERROR("Failed to getopt key[%s] "\
                     "in section[" DEF_SEC_NAME "].", key);\
             goto ST_OPT_ERR; \
+        }\
     } while(0)
 
 #define ST_OPT_SEC_GET_DOUBLE(pconf, sec, key, var, def, desc) \
