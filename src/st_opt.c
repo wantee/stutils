@@ -68,6 +68,8 @@ static char* st_opt_normalize_key(char *key, bool forprint)
         while (*p) {
             if (*p == '_') {
                 *p = '-';
+            } else if (*p == '/') {
+                *p = '.';
             } else {
                 *p = tolower(*p);
             }
