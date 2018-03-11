@@ -69,7 +69,7 @@ $(DEP_DIR)/%.d: ;
 
 -include $(patsubst %,$(DEP_DIR)/%.d,$(basename $(SRCS)))
 
-$(TARGET_BINS) : $(PREFIX)inc $(TARGET_LIB)
+$(TARGET_BINS) : $(TARGET_LIB) | $(PREFIX)inc
 
 -include $(patsubst %,$(DEP_DIR)/%.d,$(basename $(BINS)))
 
