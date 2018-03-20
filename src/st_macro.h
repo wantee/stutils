@@ -59,11 +59,13 @@ typedef unsigned int uint;
 #define UTIMEDIFF(s, e) (((e).tv_sec - (s).tv_sec)*1000*1000 \
         + ((e).tv_usec - (s).tv_usec))
 
+#ifndef __cplusplus
 #ifndef min
 #define min(X,Y) (((X)<(Y)) ? (X) : (Y))
 #endif
 #ifndef max
 #define max(X,Y) (((X)>(Y)) ? (X) : (Y))
+#endif
 #endif
 
 #define APPROX_EQUAL(x, y) (fabs(x - y) < 1e6)
