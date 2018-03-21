@@ -33,6 +33,33 @@
 #define SEC_NUM     10
 #define PARAM_NUM    100
 
+static int st_conf_strcmp(const char *s1, const char *s2)
+{
+    int c1, c2;
+
+    if (s1 == NULL && s2 != NULL) {
+        return -1;
+    } else if (s1 != NULL && s2 == NULL) {
+        return 1;
+    } else if (s1 == NULL && s2 == NULL) {
+        return 0;
+    }
+
+    while (1) {
+        c1 = tolower((unsigned char) *s1++);
+        if (c1 == '-') {
+            c1 = '_';
+        }
+        c2 = tolower((unsigned char) *s2++);
+        if (c2 == '-') {
+            c2 = '_';
+        }
+        if (c1 == 0 || c1 != c2) {
+            return c1 - c2;
+        }
+    }
+}
+
 static int resize_sec(st_conf_section_t *sec)
 {
     if (sec->param_num >= sec->param_cap) {
@@ -69,7 +96,7 @@ st_conf_section_t* st_conf_new_sec(st_conf_t *conf, const char *name)
     int s;
 
     for (s = 0; s < conf->sec_num; s++) {
-        if (strcasecmp(conf->secs[s].name, name) == 0) {
+        if (st_conf_strcmp(conf->secs[s].name, name) == 0) {
             return conf->secs + s;
         }
     }
@@ -110,7 +137,7 @@ int st_conf_add_param(st_conf_section_t *sec, const char *key,
 
     param = NULL;
     for (i = 0; i < sec->param_num; i++) {
-        if (strcasecmp(sec->param[i].key, key) == 0) {
+        if (st_conf_strcmp(sec->param[i].key, key) == 0) {
             param = sec->param + i;
             break;
         }
@@ -247,7 +274,7 @@ st_conf_section_t* st_conf_def_sec(st_conf_t *conf)
     int s;
 
     for (s = 0; s < conf->sec_num; s++) {
-        if (strcasecmp(conf->secs[s].name, DEF_SEC_NAME) == 0) {
+        if (st_conf_strcmp(conf->secs[s].name, DEF_SEC_NAME) == 0) {
             return conf->secs + s;
         }
     }
@@ -352,9 +379,9 @@ int st_conf_get_str(st_conf_t *pconf, const char *sec_name,
     name[MAX_ST_CONF_LEN - 1] = '\0';
 
     for (s = 0; s < pconf->sec_num; s++) {
-        if (strcasecmp(pconf->secs[s].name, name) == 0) {
+        if (st_conf_strcmp(pconf->secs[s].name, name) == 0) {
             for (p = 0; p < pconf->secs[s].param_num; p++) {
-                if (strcasecmp(pconf->secs[s].param[p].key, key) == 0) {
+                if (st_conf_strcmp(pconf->secs[s].param[p].key, key) == 0) {
                     pconf->secs[s].param[p].used = 1;
                     strncpy(value, pconf->secs[s].param[p].value, vlen);
                     value[vlen - 1] = 0;
@@ -879,7 +906,7 @@ bool st_conf_check(st_conf_t *pconf,
         }
         for (p = 0; p < pconf->secs[s].param_num; p++) {
             if (! pconf->secs[s].param[p].used) {
-                if (strcasecmp(pconf->secs[s].name, DEF_SEC_NAME) == 0) {
+                if (st_conf_strcmp(pconf->secs[s].name, DEF_SEC_NAME) == 0) {
                     fprintf(stderr, "Unknown option: %s\n",
                             norm_key_func(pconf->secs[s].param[p].key, true));
                 } else {
