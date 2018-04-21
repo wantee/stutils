@@ -29,6 +29,8 @@
 extern "C" {
 #endif
 
+#include <stddef.h> // for size_t
+
 #ifdef _ST_MEM_DEBUG_
 /*
  * wrapper of st_malloc

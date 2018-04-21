@@ -24,7 +24,8 @@ INCS = st_dict.h \
        st_mem.h \
        st_block_cache.h \
        st_bit.h \
-       st_varint.h
+       st_varint.h \
+       st_block_pool.h
 
 SRCS = st_dict.c \
        st_alphabet.c \
@@ -45,7 +46,8 @@ SRCS = st_dict.c \
        st_mem.c \
        st_block_cache.c \
        st_bit.c \
-       st_varint.c
+       st_varint.c \
+       st_block_pool.c
 
 TESTS = tests/st-utils-test \
         tests/st-conf-test \
