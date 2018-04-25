@@ -9,8 +9,8 @@ DEP_DIR = ./.deps
 
 CFLAGS += -Wall -pipe -g -m64
 CFLAGS += -march=native -mtune=native -O3
-CFLAGS += -I. -I$(OUTINC_DIR)
-CFLAGS += -DNDEBUG
+CPPFLAGS += -I. -I$(OUTINC_DIR)
+CPPFLAGS += -DNDEBUG
 #CFLAGS += -pg
 #LDFLAGS += -pg
 ifeq ($(shell uname -s),Darwin)

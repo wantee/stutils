@@ -1,5 +1,15 @@
-DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.Td
-POSTCOMPILE = mv -f $(DEP_DIR)/$*.Td $(DEP_DIR)/$*.d
+# options like '-I /path/to/headers' and '-D_MACRO_=1' should appended to CPPFLAGS
+# options like '-L /path/to/libs' should appended to LDFLAGS
+# options like '-llib' should appended to LDLIBS
+#
+# CXX related options should be appended to CXXFLAGS
+# C related options should be appended to CFLAGS
+# NVCC related options should be appended to NVFLAGS
+ifndef _STUTILS_COMMON_MK_
+_STUTILS_COMMON_MK_ = true
+
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.$(SRC_SUFFIX).Td
+POSTCOMPILE = mv -f $(DEP_DIR)/$*.$(SRC_SUFFIX).Td $(DEP_DIR)/$*.$(SRC_SUFFIX).d
 
 COMPILE.flags = $(DEPFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
 LINK.flags = $(LDFLAGS) $(LDLIBS) $(TARGET_ARCH)
@@ -52,13 +62,13 @@ $(OUT_INCS) : $(OUTINC_DIR)/$(PROJECT)/%.h : %.h
 
 ifdef STATIC_LINK
 
-$(TARGET_LIB) : $(patsubst %,$(OBJ_DIR)/%.o,$(basename $(SRCS)))
+$(TARGET_LIB) : $(patsubst %,$(OBJ_DIR)/%.o,$(SRCS))
 	@mkdir -p "$(dir $@)"
 	ar rcs $@ $^
 
 else
 
-$(TARGET_LIB) : $(patsubst %,$(OBJ_DIR)/%.o,$(basename $(SRCS)))
+$(TARGET_LIB) : $(patsubst %,$(OBJ_DIR)/%.o,$(SRCS))
 	@mkdir -p "$(dir $@)"
 	$(LINK.o) $(SO_FLAGS) $^ -o $@
 
@@ -67,7 +77,7 @@ endif
 $(DEP_DIR)/%.d: ;
 .PRECIOUS: $(DEP_DIR)/%.d
 
--include $(patsubst %,$(DEP_DIR)/%.d,$(basename $(SRCS)))
+-include $(patsubst %,$(DEP_DIR)/%.d,$(SRCS))
 
 $(TARGET_BINS) : $(TARGET_LIB) | $(PREFIX)inc
 
@@ -145,3 +155,5 @@ $(PREFIX)clean: $(PREFIX)clean-bin
 	rmdir -p $(OUTLIB_DIR) 2>/dev/null || true
 	rm -rf $(OUTINC_DIR)/$(PROJECT)
 	rmdir -p $(OUTINC_DIR) 2>/dev/null || true
+
+endif
