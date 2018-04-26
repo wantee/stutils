@@ -4,6 +4,10 @@ NVCC = nvcc
 ROOT_DIR = $(dir $(lastword $(MAKEFILE_LIST)))
 include $(addprefix $(ROOT_DIR)/,common.mk)
 
+CPPFLAGS += -I/usr/local/cuda/include
+LDFLAGS += -L/usr/local/cuda/lib64
+LDLIBS += -lcudart -lcublas -lcudnn -lcurand
+
 NVDEPFLAGS = -MT $@ -M
 NVCOMPILE.flags.cu = $(CPPFLAGS) $(NVFLAGS)
 NVCOMPILE.cu = $(NVCC) $(NVCOMPILE.flags.cu) -dlink -c
