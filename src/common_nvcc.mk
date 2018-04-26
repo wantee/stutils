@@ -6,7 +6,7 @@ include $(addprefix $(ROOT_DIR)/,common.mk)
 
 CPPFLAGS += -I/usr/local/cuda/include
 LDFLAGS += -L/usr/local/cuda/lib64
-LDLIBS += -lcudart -lcublas -lcudnn -lcurand
+LDLIBS += -lcudart -lcublas -lcudnn -lcurand -lcusparse
 
 NVDEPFLAGS = -MT $@ -M
 NVCOMPILE.flags.cu = $(CPPFLAGS) $(NVFLAGS)
