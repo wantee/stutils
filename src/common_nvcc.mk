@@ -10,7 +10,7 @@ LDLIBS += -lcudart -lcublas -lcudnn -lcurand -lcusparse
 
 NVDEPFLAGS = -MT $@ -M
 NVCOMPILE.flags.cu = $(CPPFLAGS) $(NVFLAGS)
-NVCOMPILE.cu = $(NVCC) $(NVCOMPILE.flags.cu) -dlink -c
+NVCOMPILE.cu = $(NVCC) $(NVCOMPILE.flags.cu) -c
 ifndef STATIC_LINK
 NVCOMPILE.cu += --compiler-options '-fPIC'
 endif
