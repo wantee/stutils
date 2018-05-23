@@ -15,6 +15,9 @@ ifndef STATIC_LINK
 NVCOMPILE.cu += --compiler-options '-fPIC'
 endif
 
+# FIXME: following makefile rule WILL run no matter what target given by
+#        command line. This is because that make will first updating all
+#        makefiles included (i.e., the $(DEP_DIR)/%.$(CU_SUFFIX).d)
 $(DEP_DIR)/%.$(CU_SUFFIX).d : %.$(CU_SUFFIX) | $(PREFIX)inc
 	@mkdir -p "$(dir $@)"
 	$(NVCC) $(CPPFLAGS) $(NVDEPFLAGS) $< > $(DEP_DIR)/$*.$(CU_SUFFIX).Td
