@@ -406,7 +406,7 @@ st_alphabet_t* st_alphabet_load_from_txt_file(const char *file)
 
     rewind(fp);
 
-    st_alphabet_load_from_txt(fp, label_num);
+    alphabet = st_alphabet_load_from_txt(fp, label_num);
     if (alphabet == NULL) {
         ST_ERROR("Failed to st_alphabet_load_from_txt.");
         goto ERR;

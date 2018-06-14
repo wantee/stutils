@@ -1,18 +1,18 @@
 /*
  * The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2015 Wang Jian
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -135,25 +135,25 @@ int st_listen(int port, int queue)
     const int on = 1;
     struct sockaddr_in sin;
 
-    if ((listenfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) 
+    if ((listenfd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
     {
         return -1;
     }
 
     setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
-    bzero(&sin, sizeof(sin));
+    memset(&sin, 0, sizeof(sin));
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = htons(port);
-    if (bind(listenfd, (struct sockaddr *) &sin, sizeof(sin)) < 0) 
+    if (bind(listenfd, (struct sockaddr *) &sin, sizeof(sin)) < 0)
     {
         close(listenfd);
         return -1;
     }
 
     (queue <= 0) ? queue = 5 : queue;
-    if (listen(listenfd, queue) < 0) 
+    if (listen(listenfd, queue) < 0)
     {
         close(listenfd);
         return -1;
