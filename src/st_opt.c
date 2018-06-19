@@ -314,6 +314,7 @@ void st_opt_show_usage(st_opt_t *opt, FILE *fp, bool show_format)
 {
     char sec[MAX_ST_CONF_LEN];
     int i;
+    bool b;
 
     ST_CHECK_PARAM_VOID(opt == NULL || fp == NULL);
 
@@ -356,7 +357,13 @@ void st_opt_show_usage(st_opt_t *opt, FILE *fp, bool show_format)
         fprintf(fp, "Format: --help\n");
         fprintf(fp, "        --key=value\n");
         fprintf(fp, "        --sec.key=value (with section specified)\n");
-        fprintf(fp, "        --sec.[<sub1>.<sub2>...<subN>.]key=value (with subsection(s) specified)\n");
+        fprintf(fp, "        --sec.[<sub1>.<sub2>...<subN>.]key=value (with subsection(s) specified)\n\n");
+    }
+
+    if (st_opt_get_bool(opt, NULL, "help-config", &b, false,
+                "show help for config file") >= 0 && b) {
+        st_conf_help(fp);
+        return;
     }
 }
 
@@ -461,7 +468,7 @@ int st_opt_parse(st_opt_t *opt, int *argc, const char *argv[])
 
     if (ret == 0) {
         if (st_opt_get_str(opt, NULL, "config",
-                    file, MAX_DIR_LEN, "", "config file") >= 0
+                    file, MAX_DIR_LEN, "", "config file. type '--help-config=true' to see detailed help.") >= 0
                 && file[0] != '\0') {
 
             opt->file_conf = st_conf_create();

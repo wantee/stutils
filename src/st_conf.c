@@ -922,3 +922,22 @@ bool st_conf_check(st_conf_t *pconf,
 
     return ret;
 }
+
+void st_conf_help(FILE *fp)
+{
+    ST_CHECK_PARAM_VOID(fp == NULL);
+
+    fprintf(fp, "Config file format: \n");
+    fprintf(fp, "--------------------\n");
+    fprintf(fp, "GLOBAL_KEY : VALUE\n");
+    fprintf(fp, "# comments. // '#' must be in start of line.\n\n");
+    fprintf(fp, "[SEC1] // section configs\n");
+    fprintf(fp, "SEC1_KEY : VALUE\n\n");
+    fprintf(fp, "[SEC1/SUB1/SUB2/.../SUBn] // subsection configs\n");
+    fprintf(fp, "SUBSEC1_KEY : VALUE\n\n");
+    fprintf(fp, "[SEC2/SUB1/SUB2/.../SUBn:conf/subsec2.conf] // load section/subsection config from the other config file\n\n");
+    fprintf(fp, "[#SEC3] // comment out whole section\n");
+    fprintf(fp, "SEC3_KEY : VALUE\n\n");
+    fprintf(fp, "// Note: blank will not be stripped inside '[]'\n");
+    fprintf(fp, "--------------------\n");
+}
