@@ -21,7 +21,8 @@ ifdef STATIC_LINK
 else
   ifeq ($(shell uname -s),Darwin)
   TARGET_LIB = $(OUTLIB_DIR)/lib$(PROJECT).dylib
-  SO_FLAGS = -dynamiclib -install_name $(abspath $(TARGET_LIB))
+#  SO_FLAGS = -dynamiclib -install_name $(abspath $(TARGET_LIB))
+  SO_FLAGS = -dynamiclib -install_name "@rpath/$(notdir $(TARGET_LIB))"
   else
   TARGET_LIB = $(OUTLIB_DIR)/lib$(PROJECT).so
   SO_FLAGS = -shared
