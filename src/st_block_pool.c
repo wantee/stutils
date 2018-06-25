@@ -64,7 +64,7 @@ int st_block_pool_alloc(st_block_pool_t* bpool)
         }
         return bpool->index_cur++;
     } else {
-        return bpool->free_cur--;
+        return bpool->free_arr[bpool->free_cur--];
     }
 }
 
