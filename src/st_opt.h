@@ -61,6 +61,13 @@ typedef struct _st_opt_info_t_ {
     };
 } st_opt_info_t;
 
+typedef struct _st_opt_help_plugin_t_ {
+    char sec_name[MAX_ST_CONF_LEN];
+    char name[MAX_ST_CONF_LEN];
+    char desc[MAX_LINE_LEN];
+    void (*help_func)(FILE *fp);
+} st_opt_help_plugin_t ;
+
 typedef struct _st_opt_t_ {
     st_conf_t *file_conf;
     st_conf_t *cmd_conf;
@@ -68,6 +75,10 @@ typedef struct _st_opt_t_ {
     st_opt_info_t *infos;
     int info_num;
     int info_cap;
+
+    st_opt_help_plugin_t *help_plugs;
+    int help_plugs_num;
+    int help_plugs_cap;
 } st_opt_t;
 
 st_opt_t *st_opt_create();
@@ -86,6 +97,9 @@ void st_opt_destroy(st_opt_t *popt);
 void st_opt_show(st_opt_t *popt, const char *header);
 
 bool st_opt_check(st_opt_t *popt);
+
+int st_opt_add_help_plugin(st_opt_t *opt, const char *sec_name,
+        const char *name, const char *desc, void (*help_func)(FILE *fp));
 
 void st_opt_show_usage(st_opt_t *opt, FILE *fp, bool show_format);
 

@@ -33,6 +33,18 @@
 #include "st_io.h"
 #include "st_log.h"
 
+static const char* ST_LOG_LEV_DESC[] = {
+    "CLEANEST",
+    "CLEANER",
+    "CLEAN",
+    "FATAL",
+    "ERROR",
+    "WARNING",
+    "NOTICE",
+    "TRACE",
+    "DEBUG"
+};
+
 static FILE *g_normal_fp = NULL;
 static FILE *g_wf_fp = NULL;
 static int g_mask = 0xff;
@@ -96,6 +108,18 @@ static FILE *st_open_file(const char *name, const char *mode)
     return st_fopen(name, mode);
 }
 
+static void st_log_help(FILE *fp)
+{
+    int i;
+
+    ST_CHECK_PARAM_VOID(fp == NULL);
+
+    fprintf(fp, "Log file level: \n");
+    for (i = 0; i < sizeof(ST_LOG_LEV_DESC)/sizeof(ST_LOG_LEV_DESC[0]); i++) {
+        fprintf(fp, "%d : %s\n", i + 1, ST_LOG_LEV_DESC[i]);
+    }
+}
+
 int st_log_load_opt(st_log_opt_t *log_opt, st_opt_t *st_opt,
         const char *sec_name)
 {
@@ -104,7 +128,13 @@ int st_log_load_opt(st_log_opt_t *log_opt, st_opt_t *st_opt,
     ST_OPT_GET_STR(st_opt, "LOG_FILE",
             log_opt->file, MAX_DIR_LEN, DEFAULT_LOGFILE, "Log file");
     ST_OPT_GET_INT(st_opt, "LOG_LEVEL", log_opt->level,
-                     DEFAULT_LOGLEVEL, "Log level (1-9)");
+                     DEFAULT_LOGLEVEL, "Log level (1-9). type '--help-log-level=true' to see detailed help");
+
+    if (st_opt_add_help_plugin(st_opt, NULL, "help-log-level",
+                "Show help for logging", st_log_help) < 0) {
+        ST_ERROR("Failed to st_opt_add_help_plugin.");
+        goto ST_OPT_ERR;
+    }
 
     return 0;
 

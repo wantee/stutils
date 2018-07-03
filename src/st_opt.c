@@ -32,6 +32,7 @@
 #include "st_opt.h"
 
 #define INFO_NUM 100
+#define HELP_PLUGIN_NUM 100
 
 static void st_opt_consume(int *argc, const char *argv[], unsigned optnum)
 {
@@ -113,6 +114,16 @@ st_opt_t* st_opt_create()
     opt->info_num = 0;
     opt->info_cap = INFO_NUM;
 
+    opt->help_plugs = (st_opt_help_plugin_t *)st_malloc(
+            sizeof(st_opt_help_plugin_t) * HELP_PLUGIN_NUM);
+    if (opt->help_plugs == NULL) {
+        ST_ERROR("Failed to st_malloc help_plugs");
+        goto ERR;
+    }
+    memset(opt->help_plugs, 0, sizeof(st_opt_help_plugin_t) * HELP_PLUGIN_NUM);
+    opt->help_plugs_num = 0;
+    opt->help_plugs_cap = HELP_PLUGIN_NUM;
+
     return opt;
 ERR:
     safe_st_opt_destroy(opt);
@@ -129,6 +140,7 @@ void st_opt_destroy(st_opt_t *popt)
     safe_st_conf_destroy(popt->cmd_conf);
 
     safe_st_free(popt->infos);
+    safe_st_free(popt->help_plugs);
 }
 
 void st_opt_show(st_opt_t *popt, const char *header)
@@ -310,6 +322,57 @@ static int st_opt_add_info(st_opt_t *opt, st_opt_type_t type,
     return 0;
 }
 
+static int resize_opt_help_plugs(st_opt_t *opt)
+{
+    if (opt->help_plugs_num >= opt->help_plugs_cap) {
+        opt->help_plugs_cap += HELP_PLUGIN_NUM;
+        opt->help_plugs = (st_opt_help_plugin_t *)st_realloc(opt->help_plugs,
+                    opt->help_plugs_cap * sizeof(st_opt_help_plugin_t));
+        if (opt->help_plugs == NULL) {
+            ST_ERROR("Failed to st_realloc help_plugs.");
+            goto ERR;
+        }
+        memset(opt->help_plugs + opt->help_plugs_num, 0,
+                HELP_PLUGIN_NUM * sizeof(st_opt_help_plugin_t));
+    }
+
+    return 0;
+ERR:
+    return -1;
+}
+
+int st_opt_add_help_plugin(st_opt_t *opt, const char *sec_name,
+        const char *name, const char *desc, void (*help_func)(FILE *fp))
+{
+    st_opt_help_plugin_t *plug;
+
+    if (resize_opt_help_plugs(opt) < 0) {
+        ST_ERROR("Failed to resize_opt_help_plugs.");
+        return -1;
+    }
+
+    plug = opt->help_plugs + opt->help_plugs_num;
+    if (sec_name == NULL || sec_name[0] == '\0'
+            || strcasecmp(plug->sec_name, DEF_SEC_NAME) == 0) {
+        plug->sec_name[0] = '\0';
+    } else {
+        strncpy(plug->sec_name, sec_name, MAX_ST_CONF_LEN);
+        plug->sec_name[MAX_ST_CONF_LEN - 1] = '\0';
+    }
+
+    strncpy(plug->name, name, MAX_ST_CONF_LEN);
+    plug->name[MAX_ST_CONF_LEN - 1] = '\0';
+
+    strncpy(plug->desc, desc, MAX_LINE_LEN);
+    plug->desc[MAX_LINE_LEN - 1] = '\0';
+
+    plug->help_func = help_func;
+
+    opt->help_plugs_num++;
+
+    return 0;
+}
+
 void st_opt_show_usage(st_opt_t *opt, FILE *fp, bool show_format)
 {
     char sec[MAX_ST_CONF_LEN];
@@ -363,7 +426,14 @@ void st_opt_show_usage(st_opt_t *opt, FILE *fp, bool show_format)
     if (st_opt_get_bool(opt, NULL, "help-config", &b, false,
                 "show help for config file") >= 0 && b) {
         st_conf_help(fp);
-        return;
+    }
+
+    for (i = 0; i < opt->help_plugs_num; i++) {
+        if (st_opt_get_bool(opt, opt->help_plugs[i].sec_name,
+                    opt->help_plugs[i].name, &b, false,
+                    opt->help_plugs[i].desc) >= 0 && b) {
+            (*(opt->help_plugs[i].help_func))(fp);
+        }
     }
 }
 
