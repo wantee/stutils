@@ -448,13 +448,13 @@ int st_opt_parse_one(st_opt_t *opt, int *argc, const char *argv[])
 	unsigned arg;
     int num_kv;
 
-    for (arg = 1; argv[arg]; arg++) {
+    for (arg = 1; arg < *argc; arg++) {
         if (strncmp(argv[arg], "--", 2) == 0) {
             break;
         }
     }
 
-	if (!argv[arg] || strncmp(argv[arg], "--", 2) != 0) {
+	if (arg >= *argc) {
 		return 0;
     }
 
