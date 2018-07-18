@@ -22,10 +22,10 @@ else
   ifeq ($(shell uname -s),Darwin)
   TARGET_LIB = $(OUTLIB_DIR)/lib$(PROJECT).dylib
 #  SO_FLAGS = -dynamiclib -install_name $(abspath $(TARGET_LIB))
-  SO_FLAGS = -dynamiclib -install_name "@rpath/$(notdir $(TARGET_LIB))"
+  SO_FLAGS = -dynamiclib -install_name "@loader_path/$(notdir $(TARGET_LIB))"
   else
   TARGET_LIB = $(OUTLIB_DIR)/lib$(PROJECT).so
-  SO_FLAGS = -shared
+  SO_FLAGS = -shared -Wl,-rpath,'$$ORIGIN'
   endif
 endif
 TARGET_BINS = $(addprefix $(OUTBIN_DIR)/,$(BINS))
