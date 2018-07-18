@@ -27,6 +27,7 @@
 #include "st_utils.h"
 #include "st_log.h"
 #include "st_io.h"
+#include "st_string.h"
 #include "st_alphabet.h"
 
 void get_sign(const char *psrc, int slen, st_dict_sign_t *sign1, st_dict_sign_t *sign2)
@@ -292,7 +293,8 @@ ERR:
 int st_alphabet_load_txt(st_alphabet_t *alphabet, FILE *fp, int label_num)
 {
     char line[MAX_LINE_LEN];
-    char syms[MAX_SYM_LEN] ;
+    char sym_id[2*MAX_LINE_LEN];
+    int num_fields;
     int id;
     int i;
 
@@ -313,8 +315,16 @@ int st_alphabet_load_txt(st_alphabet_t *alphabet, FILE *fp, int label_num)
 
     i = 0;
     while(fgets(line, MAX_LINE_LEN, fp)) {
-        if (sscanf(line, "%s %d", syms, &id) != 2) {
-            continue;
+        num_fields = split_line(line, sym_id, 2, MAX_LINE_LEN, " \t");
+        if (num_fields != 2) {
+            ST_ERROR("Invalid line in alphabet [%s]", line);
+            return -1;
+        }
+
+        id = atoi(sym_id + MAX_LINE_LEN);
+        if (id < 0) {
+            ST_ERROR("Invalid line in alphabet [%s]", line);
+            return -1;
         }
 
         if (id >= label_num) {
@@ -323,11 +333,11 @@ int st_alphabet_load_txt(st_alphabet_t *alphabet, FILE *fp, int label_num)
         }
 
         if (labels[id].symid != -1) {
-            ST_ERROR("Duplicated symbol [%d:%s].", id, syms);
+            ST_ERROR("Duplicated symbol [%d:%s].", id, sym_id);
             return -1;
         }
 
-        strncpy(labels[id].label, syms, MAX_SYM_LEN);
+        strncpy(labels[id].label, sym_id, MAX_SYM_LEN);
         labels[id].label[MAX_SYM_LEN - 1] = 0;
         labels[id].symid = id;
 
