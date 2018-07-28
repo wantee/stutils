@@ -28,6 +28,7 @@
 #include <ctype.h>
 
 #include "st_log.h"
+#include "st_io.h"
 #include "st_conf.h"
 
 #define SEC_NUM     10
@@ -126,9 +127,6 @@ ERR:
     return NULL;
 }
 
-static FILE *g_cur_fp = NULL;
-static FILE *g_global_fp = NULL;
-
 int st_conf_add_param(st_conf_section_t *sec, const char *key,
         const char *value)
 {
@@ -160,113 +158,6 @@ int st_conf_add_param(st_conf_section_t *sec, const char *key,
     param->value[MAX_ST_CONF_LEN - 1] = 0;
 
     return 0;
-}
-
-int st_resolve_param(const char *line, st_conf_t *pconf,
-        st_conf_section_t** sec)
-{
-    char buffer[MAX_ST_CONF_LINE_LEN];
-    char *work = NULL;
-    char *sec_conf = NULL;
-    int i;
-    int j;
-    int len;
-
-    if (line == NULL || sec == NULL || *sec == NULL) {
-        return -1;
-    }
-    work = strrchr(line, '\r');
-    if (work != NULL) {
-        *work = '\0';
-    }
-    work = strrchr(line, '\n');
-    if (work != NULL) {
-        *work = '\0';
-    }
-
-    len = (int) strlen(line);
-    j = 0;
-
-    for (i = 0; i < len; i++) {
-        if (line[i] != ' ' && line[i] != '\t') {
-            buffer[j] = line[i];
-            j++;
-        }
-        if (j >= MAX_ST_CONF_LINE_LEN) {
-            return -1;
-        }
-    }
-    len = j;
-    if (len <= 0) {
-        return 0;
-    }
-    buffer[len] = '\0';
-
-    if (buffer[0] == '#') {
-        return 0;
-    } else if (buffer[0] == '[') {
-        if (g_global_fp != g_cur_fp) {
-            ST_ERROR("section can not be nested in section.");
-            return -1;
-        }
-
-        work = strrchr(buffer, ']');
-        if (work != NULL) {
-            *work = '\0';
-        } else {
-            ST_ERROR("Not closed '['.");
-            return -1;
-        }
-
-        if (buffer[1] == '#') {
-            work = buffer + 2;
-        } else {
-            work = buffer + 1;
-        }
-
-        sec_conf = strchr(work, ':');
-        if (sec_conf != NULL) {
-            *sec_conf = 0;
-            sec_conf++;
-
-            g_cur_fp = fopen(sec_conf, "rb");
-            if (g_cur_fp == NULL) {
-                ST_ERROR("Failed to open conf[%s] for section[%s].",
-                        sec_conf, work);
-                return -1;
-            }
-        }
-
-        *sec = st_conf_new_sec(pconf, work);
-        if ((*sec) == NULL) {
-            ST_ERROR("Failed to st_conf_new_sec.");
-            return -1;
-        }
-
-        if (buffer[1] == '#') {
-            (*sec)->comment_out = 1;
-        }
-        return 0;
-    }
-
-    if ((*sec)->comment_out != 0) {
-        return 0;
-    }
-
-    work = strchr(buffer, ':');
-    if (work == NULL) {
-        return 0;
-    }
-    *work = 0;
-    work++;
-
-    if (st_conf_add_param(*sec, buffer, work) < 0) {
-        ST_ERROR("Failed to st_conf_add_param. key[%s], value[$s]",
-                buffer, work);
-        return -1;
-    }
-
-    return 1;
 }
 
 st_conf_section_t* st_conf_def_sec(st_conf_t *conf)
@@ -305,56 +196,220 @@ ERR:
     return NULL;
 }
 
-int st_conf_load(st_conf_t *st_conf, const char *conf_file)
+typedef struct _st_conf_line_type_t_ {
+    enum {
+        IGNORE = 0,
+        SECTION,
+        PARAM,
+    } type;
+    char key[MAX_ST_CONF_LEN];
+    char value[MAX_ST_CONF_LEN];
+    bool comment_out;
+} st_conf_line_type_t;
+
+static void st_conf_line_type_clear(st_conf_line_type_t *line_type)
+{
+    ST_CHECK_PARAM_VOID(line_type == NULL);
+
+    line_type->type = IGNORE;
+    line_type->key[0] = '\0';
+    line_type->value[0] = '\0';
+    line_type->comment_out = false;
+}
+
+static int st_resolve_line(const char *line, st_conf_line_type_t *line_type)
+{
+    char buffer[MAX_ST_CONF_LINE_LEN];
+    char *work = NULL;
+    char *sec_conf = NULL;
+    int i;
+    int j;
+    int len;
+
+    ST_CHECK_PARAM(line == NULL || line_type == NULL, -1);
+
+    st_conf_line_type_clear(line_type);
+
+    work = strrchr(line, '\r');
+    if (work != NULL) {
+        *work = '\0';
+    }
+    work = strrchr(line, '\n');
+    if (work != NULL) {
+        *work = '\0';
+    }
+
+    len = (int) strlen(line);
+    j = 0;
+
+    for (i = 0; i < len; i++) {
+        if (line[i] != ' ' && line[i] != '\t') {
+            buffer[j] = line[i];
+            j++;
+        }
+        if (j >= MAX_ST_CONF_LINE_LEN) {
+            ST_ERROR("Too long line[%s]", line);
+            return -1;
+        }
+    }
+    len = j;
+    if (len <= 0) { // ignore empty line
+        return 0;
+    }
+    buffer[len] = '\0';
+
+    if (buffer[0] == '#') { // ignore comment line
+        return 0;
+    } else if (buffer[0] == '[') {
+        work = strrchr(buffer, ']');
+        if (work != NULL) {
+            *work = '\0';
+        } else {
+            ST_ERROR("Not closed '['.");
+            return -1;
+        }
+
+        line_type->type = SECTION;
+
+        if (buffer[1] == '#') {
+            work = buffer + 2;
+            line_type->comment_out = true;
+        } else {
+            work = buffer + 1;
+        }
+
+        sec_conf = strchr(work, ':');
+        if (sec_conf != NULL) {
+            *sec_conf = '\0';
+            sec_conf++;
+            if (*sec_conf == '\0') {
+                ST_ERROR("No section config file provided[%s]", line);
+                return -1;
+            }
+
+            // section config file
+            strncpy(line_type->value, sec_conf, MAX_ST_CONF_LEN);
+            line_type->value[MAX_ST_CONF_LEN - 1] = '\0';
+        }
+
+        // section name
+        strncpy(line_type->key, work, MAX_ST_CONF_LEN);
+        line_type->key[MAX_ST_CONF_LEN - 1] = '\0';
+
+        return 0;
+    }
+
+    work = strchr(buffer, ':');
+    if (work == NULL) {
+        ST_ERROR("Invalid line[%s]", line);
+        return -1;
+    }
+    *work = 0;
+    work++;
+
+    line_type->type = PARAM;
+    strncpy(line_type->key, buffer, MAX_ST_CONF_LEN);
+    line_type->key[MAX_ST_CONF_LEN - 1] = '\0';
+    strncpy(line_type->value, work, MAX_ST_CONF_LEN);
+    line_type->value[MAX_ST_CONF_LEN - 1] = '\0';
+
+    return 0;
+}
+
+static int st_conf_load_one_file(st_conf_t *st_conf,
+        st_conf_section_t *parent_sec, const char *conf_file)
 {
     char line[MAX_ST_CONF_LINE_LEN];
+    char sec_name[MAX_ST_CONF_LEN];
+    st_conf_line_type_t line_type;
     st_conf_section_t *cur_sec = NULL;
-    int ch;
+    FILE *cur_fp = NULL;
 
     ST_CHECK_PARAM(st_conf == NULL || conf_file == NULL, -1);
 
-    cur_sec = st_conf_def_sec(st_conf);
-    if (cur_sec == NULL) {
-        ST_ERROR("Error: No default section.");
+    if (parent_sec == NULL) {
+        cur_sec = st_conf_def_sec(st_conf);
+        if (cur_sec == NULL) {
+            ST_ERROR("Error: No default section.");
+            goto ERR;
+        }
+    } else {
+        cur_sec = parent_sec;
+    }
+
+    cur_fp = st_fopen(conf_file, "rb");
+    if (cur_fp == NULL) {
+        ST_ERROR("Failed to st_fopen[%s]", conf_file);
         goto ERR;
     }
 
-    g_global_fp = fopen(conf_file, "rb");
-    if (g_global_fp == NULL) {
-        goto ERR;
-    }
-
-    g_cur_fp = g_global_fp;
-    while (fgets(line, MAX_ST_CONF_LINE_LEN, g_cur_fp)) {
-        if (st_resolve_param(line, st_conf, &cur_sec) < 0) {
-            ST_ERROR("Failed to st_resolve_param.");
+    while (fgets(line, MAX_ST_CONF_LINE_LEN, cur_fp)) {
+        if (st_resolve_line(line, &line_type) < 0) {
+            ST_ERROR("Failed to st_resolve_line.");
             goto ERR;
         }
 
-        if (g_cur_fp != g_global_fp) {
-            ch = fgetc(g_cur_fp);
-            if (feof(g_cur_fp)) {
-                fclose(g_cur_fp);
-                g_cur_fp = g_global_fp;
-            } else {
-                ungetc(ch, g_cur_fp);
-            }
+        switch (line_type.type) {
+            case IGNORE:
+                break;
+            case SECTION:
+                if (parent_sec != NULL) {
+                    snprintf(sec_name, MAX_ST_CONF_LEN, "%s/%s",
+                            parent_sec->name, line_type.key);
+                } else {
+                    snprintf(sec_name, MAX_ST_CONF_LEN, "%s", line_type.key);
+                }
+                cur_sec = st_conf_new_sec(st_conf, sec_name);
+                if (cur_sec == NULL) {
+                    ST_ERROR("Failed to st_conf_new_sec[%s].", sec_name);
+                    goto ERR;
+                }
+                cur_sec->comment_out = line_type.comment_out;
+
+                if (line_type.value[0] != '\0') {
+                    if (st_conf_load_one_file(st_conf, cur_sec, line_type.value) < 0) {
+                        ST_ERROR("Failed to st_conf_load_one_file[%s] for section[%s].",
+                                line_type.value, sec_name);
+                        goto ERR;
+                    }
+                }
+                break;
+            case PARAM:
+                if (cur_sec->comment_out) {
+                    continue;
+                }
+                if (st_conf_add_param(cur_sec, line_type.key, line_type.value) < 0) {
+                    ST_ERROR("Failed to st_conf_add_param. "
+                             "sec[%s], key[%s], value[%s]", cur_sec->name,
+                             line_type.key, line_type.value);
+                    return -1;
+                }
+                break;
+            default:
+                ST_ERROR("Unknown line_type[%d]", line_type.type);
+                goto ERR;
         }
     }
 
-    fclose(g_global_fp);
+    safe_st_fclose(cur_fp);
 
     return 0;
 
 ERR:
-    if (g_cur_fp != g_global_fp) {
-        safe_fclose(g_global_fp);
-        safe_fclose(g_cur_fp);
-    } else {
-        safe_fclose(g_global_fp);
-        g_cur_fp = NULL;
-    }
+    safe_st_fclose(cur_fp);
     return -1;
+}
+
+int st_conf_load(st_conf_t *st_conf, const char *conf_file)
+{
+    ST_CHECK_PARAM(st_conf == NULL || conf_file == NULL, -1);
+
+    if (st_conf_load_one_file(st_conf, NULL, conf_file) < 0) {
+        ST_ERROR("Failed to st_conf_load_one_file[%s].", conf_file);
+        return -1;
+    }
+
+    return 0;
 }
 
 int st_conf_get_str(st_conf_t *pconf, const char *sec_name,
@@ -862,7 +917,7 @@ void st_conf_show(st_conf_t *pconf, const char *header)
         ST_CLEAN("%s", header);
     }
     for (s = 0; s < pconf->sec_num; s++) {
-        if (pconf->secs[s].comment_out != 0) {
+        if (pconf->secs[s].comment_out) {
             continue;
         }
         ST_CLEAN("[%s]", st_conf_normalize_key(pconf->secs[s].name, true));
@@ -901,7 +956,7 @@ bool st_conf_check(st_conf_t *pconf,
     }
 
     for (s = 0; s < pconf->sec_num; s++) {
-        if (pconf->secs[s].comment_out != 0) {
+        if (pconf->secs[s].comment_out) {
             continue;
         }
         for (p = 0; p < pconf->secs[s].param_num; p++) {

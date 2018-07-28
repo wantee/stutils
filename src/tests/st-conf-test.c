@@ -83,9 +83,9 @@ static void save_sec_item(sec_ref_t *sec_ref, FILE *fp)
     }
 }
 
-static void save_sec(sec_ref_t *sec_ref, FILE *fp)
+static const char* save_sec(sec_ref_t *sec_ref, FILE *fp)
 {
-    const char *file;
+    const char *file = NULL;
     FILE *sub_fp = NULL;
 
     if (sec_ref->file_conf) {
@@ -104,6 +104,8 @@ static void save_sec(sec_ref_t *sec_ref, FILE *fp)
         }
         save_sec_item(sec_ref, fp);
     }
+
+    return file;
 }
 
 static const char* mk_conf_files(ref_t *ref)
@@ -122,6 +124,53 @@ static const char* mk_conf_files(ref_t *ref)
         save_sec(ref->secs + i, fp);
     }
 
+    safe_st_fclose(fp);
+
+#ifdef _ST_CONF_TEST_DEBUG_
+    fprintf(stderr, "Main conf: %s\n", file);
+#endif
+
+    return file;
+}
+
+static const char* mk_nested_conf_files(ref_t *ref, int num_sub_secs)
+{
+    size_t ori_len;
+    const char *file, *sub_file;
+    char *sec_name;
+    FILE* fp = NULL, *sub_fp = NULL;
+    int i;
+
+    file = add_file();
+    fp = st_fopen(file, "w");
+    assert(fp != NULL);
+
+    save_sec(&ref->def_sec, fp);
+
+    for (i = 0; i < ref->num_sec - num_sub_secs; i++) {
+        save_sec(ref->secs + i, fp);
+    }
+
+    ref->secs[i].file_conf = true;
+    sec_name = ref->secs[i].name;
+    sub_file = save_sec(ref->secs + i, fp);
+    i++;
+
+    sub_fp = st_fopen(sub_file, "a");
+    assert(sub_fp != NULL);
+    for (; i < ref->num_sec; i++) {
+        ref->secs[i].file_conf = false;
+        // remove parent sec_name
+        ori_len = strlen(ref->secs[i].name);
+        memmove(ref->secs[i].name, ref->secs[i].name + strlen(sec_name) + 1, ori_len - strlen(sec_name) + 1);
+        save_sec(ref->secs + i, sub_fp);
+        // recover sec_name
+        memmove(ref->secs[i].name + strlen(sec_name) + 1, ref->secs[i].name, ori_len - strlen(sec_name) + 2);
+        memcpy(ref->secs[i].name, sec_name, strlen(sec_name));
+        ref->secs[i].name[strlen(sec_name)] = '/';
+    }
+
+    safe_st_fclose(sub_fp);
     safe_st_fclose(fp);
 
 #ifdef _ST_CONF_TEST_DEBUG_
@@ -233,10 +282,30 @@ static int unit_test_load()
     fprintf(stderr, "Passed\n");
 
     /*****************************************/
-    fprintf(stderr, "    Case %d...", ncase++);
+    fprintf(stderr, "    Case %d... file section config", ncase++);
     ref = std_ref;
     ref.secs[1].file_conf = true;
     file = mk_conf_files(&ref);
+    assert(file != NULL);
+    conf = st_conf_create();
+    assert (conf != NULL);
+    if (st_conf_load(conf, file) < 0) {
+        fprintf(stderr, "Failed\n");
+        goto FAILED;
+    }
+
+    if (check_conf(conf, &ref) != 0) {
+        fprintf(stderr, "Failed\n");
+        goto FAILED;
+    }
+    clean_conf_files();
+    safe_st_conf_destroy(conf);
+    fprintf(stderr, "Passed\n");
+
+    /*****************************************/
+    fprintf(stderr, "    Case %d... nested file section config", ncase++);
+    ref = std_ref;
+    file = mk_nested_conf_files(&ref, 3);
     assert(file != NULL);
     conf = st_conf_create();
     assert (conf != NULL);
