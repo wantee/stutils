@@ -55,8 +55,6 @@ typedef struct _st_conf_section_t_
 	st_conf_param_t *def_param;
 	int def_param_num;
     int def_param_cap;
-
-    bool comment_out;
 } st_conf_section_t;
 
 typedef struct _st_conf_t_

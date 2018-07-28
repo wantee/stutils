@@ -204,7 +204,6 @@ typedef struct _st_conf_line_type_t_ {
     } type;
     char key[MAX_ST_CONF_LEN];
     char value[MAX_ST_CONF_LEN];
-    bool comment_out;
 } st_conf_line_type_t;
 
 static void st_conf_line_type_clear(st_conf_line_type_t *line_type)
@@ -214,7 +213,6 @@ static void st_conf_line_type_clear(st_conf_line_type_t *line_type)
     line_type->type = IGNORE;
     line_type->key[0] = '\0';
     line_type->value[0] = '\0';
-    line_type->comment_out = false;
 }
 
 static int st_resolve_line(const char *line, st_conf_line_type_t *line_type)
@@ -270,13 +268,7 @@ static int st_resolve_line(const char *line, st_conf_line_type_t *line_type)
         }
 
         line_type->type = SECTION;
-
-        if (buffer[1] == '#') {
-            work = buffer + 2;
-            line_type->comment_out = true;
-        } else {
-            work = buffer + 1;
-        }
+        work = buffer + 1;
 
         sec_conf = strchr(work, ':');
         if (sec_conf != NULL) {
@@ -364,7 +356,6 @@ static int st_conf_load_one_file(st_conf_t *st_conf,
                     ST_ERROR("Failed to st_conf_new_sec[%s].", sec_name);
                     goto ERR;
                 }
-                cur_sec->comment_out = line_type.comment_out;
 
                 if (line_type.value[0] != '\0') {
                     if (st_conf_load_one_file(st_conf, cur_sec, line_type.value) < 0) {
@@ -375,9 +366,6 @@ static int st_conf_load_one_file(st_conf_t *st_conf,
                 }
                 break;
             case PARAM:
-                if (cur_sec->comment_out) {
-                    continue;
-                }
                 if (st_conf_add_param(cur_sec, line_type.key, line_type.value) < 0) {
                     ST_ERROR("Failed to st_conf_add_param. "
                              "sec[%s], key[%s], value[%s]", cur_sec->name,
@@ -917,9 +905,6 @@ void st_conf_show(st_conf_t *pconf, const char *header)
         ST_CLEAN("%s", header);
     }
     for (s = 0; s < pconf->sec_num; s++) {
-        if (pconf->secs[s].comment_out) {
-            continue;
-        }
         ST_CLEAN("[%s]", st_conf_normalize_key(pconf->secs[s].name, true));
         for (p = 0; p < pconf->secs[s].param_num; p++) {
             ST_CLEAN("%s{%s : %s}", pconf->secs[s].param[p].used ? "" : "*",
@@ -956,9 +941,6 @@ bool st_conf_check(st_conf_t *pconf,
     }
 
     for (s = 0; s < pconf->sec_num; s++) {
-        if (pconf->secs[s].comment_out) {
-            continue;
-        }
         for (p = 0; p < pconf->secs[s].param_num; p++) {
             if (! pconf->secs[s].param[p].used) {
                 if (st_conf_strcmp(pconf->secs[s].name, DEF_SEC_NAME) == 0) {
@@ -991,8 +973,6 @@ void st_conf_help(FILE *fp)
     fprintf(fp, "[SEC1/SUB1/SUB2/.../SUBn] // subsection configs\n");
     fprintf(fp, "SUBSEC1_KEY : VALUE\n\n");
     fprintf(fp, "[SEC2/SUB1/SUB2/.../SUBn:conf/subsec2.conf] // load section/subsection config from the other config file\n\n");
-    fprintf(fp, "[#SEC3] // comment out whole section\n");
-    fprintf(fp, "SEC3_KEY : VALUE\n\n");
-    fprintf(fp, "// Note: blank will not be stripped inside '[]'\n");
+    fprintf(fp, "// Note: all whitespace will not be stripped\n");
     fprintf(fp, "--------------------\n");
 }
