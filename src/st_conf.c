@@ -26,9 +26,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <libgen.h>
 
 #include "st_log.h"
 #include "st_io.h"
+#include "st_string.h"
 #include "st_conf.h"
 
 #define SEC_NUM     10
@@ -313,6 +315,8 @@ static int st_conf_load_one_file(st_conf_t *st_conf,
 {
     char line[MAX_ST_CONF_LINE_LEN];
     char sec_name[MAX_ST_CONF_LEN];
+    char conf_dirname[MAX_ST_CONF_LEN];
+    char sec_conf[MAX_ST_CONF_LEN];
     st_conf_line_type_t line_type;
     st_conf_section_t *cur_sec = NULL;
     FILE *cur_fp = NULL;
@@ -358,9 +362,20 @@ static int st_conf_load_one_file(st_conf_t *st_conf,
                 }
 
                 if (line_type.value[0] != '\0') {
-                    if (st_conf_load_one_file(st_conf, cur_sec, line_type.value) < 0) {
+                    strncpy(conf_dirname, conf_file, MAX_ST_CONF_LEN);
+                    conf_dirname[MAX_ST_CONF_LEN - 1] = '\0';
+                    if (st_str_replace(sec_conf, MAX_ST_CONF_LEN,
+                            line_type.value, ORIGIN_PATH_VAR,
+                            dirname(conf_dirname), -1) < 0) {
+                        ST_ERROR("Failed to st_str_replace[%s] [%s -> %s].",
+                                line_type.value, ORIGIN_PATH_VAR,
+                                dirname(conf_dirname));
+                        goto ERR;
+                    }
+
+                    if (st_conf_load_one_file(st_conf, cur_sec, sec_conf) < 0) {
                         ST_ERROR("Failed to st_conf_load_one_file[%s] for section[%s].",
-                                line_type.value, sec_name);
+                                sec_conf, sec_name);
                         goto ERR;
                     }
                 }
@@ -972,7 +987,7 @@ void st_conf_help(FILE *fp)
     fprintf(fp, "SEC1_KEY : VALUE\n\n");
     fprintf(fp, "[SEC1/SUB1/SUB2/.../SUBn] // subsection configs\n");
     fprintf(fp, "SUBSEC1_KEY : VALUE\n\n");
-    fprintf(fp, "[SEC2/SUB1/SUB2/.../SUBn:conf/subsec2.conf] // load section/subsection config from the other config file\n\n");
+    fprintf(fp, "[SEC2/SUB1/SUB2/.../SUBn:%s/subsec2.conf] // load section/subsection config from the other config file\n\n", ORIGIN_PATH_VAR);
     fprintf(fp, "// Note: all whitespace will not be stripped\n");
     fprintf(fp, "--------------------\n");
 }

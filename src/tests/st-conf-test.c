@@ -29,6 +29,7 @@
 #include <unistd.h>
 
 #include "st_io.h"
+#include "st_string.h"
 #include "st_conf.h"
 
 #define MAX_SEC 8
@@ -41,6 +42,7 @@ typedef struct _item_t_ {
 typedef struct _sec_ref_t_ {
     char name[MAX_ST_CONF_LEN];
     bool file_conf;
+    bool file_conf_relative;
 
     item_t items[MAX_ITEM];
     int num_item;
@@ -85,6 +87,7 @@ static void save_sec_item(sec_ref_t *sec_ref, FILE *fp)
 
 static const char* save_sec(sec_ref_t *sec_ref, FILE *fp)
 {
+    char relative_file[MAX_DIR_LEN];
     const char *file = NULL;
     FILE *sub_fp = NULL;
 
@@ -97,7 +100,13 @@ static const char* save_sec(sec_ref_t *sec_ref, FILE *fp)
 
         safe_st_fclose(sub_fp);
 
-        fprintf(fp, "[%s:%s]\n", sec_ref->name, file);
+        if (sec_ref->file_conf_relative) {
+            assert (st_str_replace(relative_file, MAX_DIR_LEN,
+                        file, "/tmp", ORIGIN_PATH_VAR, 1) >= 0);
+            fprintf(fp, "[%s:%s]\n", sec_ref->name, relative_file);
+        } else {
+            fprintf(fp, "[%s:%s]\n", sec_ref->name, file);
+        }
     } else {
         if (sec_ref->name[0] != '\0') {
             fprintf(fp, "[%s]\n", sec_ref->name);
@@ -152,6 +161,7 @@ static const char* mk_nested_conf_files(ref_t *ref, int num_sub_secs)
     }
 
     ref->secs[i].file_conf = true;
+    ref->secs[i].file_conf_relative = true;
     sec_name = ref->secs[i].name;
     sub_file = save_sec(ref->secs + i, fp);
     i++;
@@ -243,17 +253,17 @@ static int unit_test_load()
     int ncase;
     ref_t ref;
     ref_t std_ref = {
-        .def_sec = {"", false, {{"def_key1", "def_val1"},
-                                {"def_key2", "def_val2"},
-                                {"def_key3", "def_val3"}}, 3},
+        .def_sec = {"", false, false, {{"def_key1", "def_val1"},
+                                       {"def_key2", "def_val2"},
+                                       {"def_key3", "def_val3"}}, 3},
 
-        .secs = {{"sec", false, {{"sec_key1", "sec_val1"}}, 1},
-                 {"sec/sub", false, {{"sub_key1", "sub_val1"},
-                                     {"sub_key2", "sub_val2"}}, 2},
-                 {"sec/sub/sub1", false, {{"ss1_key1", "ss2_val1"},
-                                         {"ss1_key2", "ss2_val2"}}, 2},
-                 {"sec/sub/sub2", false, {{"ss2_key1", "ss2_val1"},
-                                         {"ss2_key2", "ss2_val2"}}, 2},
+        .secs = {{"sec", false, false, {{"sec_key1", "sec_val1"}}, 1},
+                 {"sec/sub", false, false, {{"sub_key1", "sub_val1"},
+                                            {"sub_key2", "sub_val2"}}, 2},
+                 {"sec/sub/sub1", false, false, {{"ss1_key1", "ss2_val1"},
+                                                 {"ss1_key2", "ss2_val2"}}, 2},
+                 {"sec/sub/sub2", false, false, {{"ss2_key1", "ss2_val1"},
+                                                 {"ss2_key2", "ss2_val2"}}, 2},
                 },
         .num_sec = 4,
     };

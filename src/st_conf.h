@@ -36,6 +36,7 @@ extern "C" {
 #define MAX_ST_CONF_LINE_LEN   1024
 
 #define DEF_SEC_NAME "__def_sec__"
+#define ORIGIN_PATH_VAR "$ORIGIN"
 
 typedef struct _st_conf_param_t_
 {
