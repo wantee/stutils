@@ -12,22 +12,29 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.$(SRC_SUFFIX).Td
 POSTCOMPILE = mv -f $(DEP_DIR)/$*.$(SRC_SUFFIX).Td $(DEP_DIR)/$*.$(SRC_SUFFIX).d
 
 COMPILE.flags = $(DEPFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
-LINK.flags = $(LDFLAGS) $(LDLIBS) $(TARGET_ARCH)
-
-LINK.o = $(LD) $(LINK.flags)
+LINK.flags = $(LDFLAGS) $(TARGET_ARCH)
 
 ifdef STATIC_LINK
   TARGET_LIB=$(OUTLIB_DIR)/lib$(PROJECT).a
+  ifeq ($(shell $(LD) -v 2>&1 | grep -E 'gcc|GNU' >/dev/null 2>&1; echo $$?),0)
+    LINK.flags += -Wl,--start-group $(LDLIBS) -Wl,--end-group
+  else
+    LINK.flags += $(LDLIBS)
+  endif
 else
   ifeq ($(shell uname -s),Darwin)
-  TARGET_LIB = $(OUTLIB_DIR)/lib$(PROJECT).dylib
-#  SO_FLAGS = -dynamiclib -install_name $(abspath $(TARGET_LIB))
-  SO_FLAGS = -dynamiclib -install_name "@rpath/$(notdir $(TARGET_LIB))"
+    TARGET_LIB = $(OUTLIB_DIR)/lib$(PROJECT).dylib
+#    SO_FLAGS = -dynamiclib -install_name $(abspath $(TARGET_LIB))
+    SO_FLAGS = -dynamiclib -install_name "@rpath/$(notdir $(TARGET_LIB))"
   else
-  TARGET_LIB = $(OUTLIB_DIR)/lib$(PROJECT).so
-  SO_FLAGS = -shared -Wl,-rpath,'$$ORIGIN'
+    TARGET_LIB = $(OUTLIB_DIR)/lib$(PROJECT).so
+    SO_FLAGS = -shared -Wl,-rpath,'$$ORIGIN'
   endif
+  LINK.flags += $(LDLIBS)
 endif
+
+LINK.o = $(LD) $(LINK.flags)
+
 TARGET_BINS = $(addprefix $(OUTBIN_DIR)/,$(BINS))
 
 ifdef REV_INC

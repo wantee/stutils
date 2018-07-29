@@ -2,11 +2,12 @@ SRC_SUFFIX = c
 LD = $(CC)
 COMPILE.flags.c = $(CFLAGS) $(COMPILE.flags)
 COMPILE.c = $(CC) $(COMPILE.flags.c) -c
-ifndef STATIC_LINK
-COMPILE.c += -fPIC
-endif
 
-libflags = -L$(OUTLIB_DIR) -Wl,-rpath,$(abspath $(OUTLIB_DIR)) -Wl,-rpath,'$$ORIGIN/../lib' -l$(PROJECT)
+libflags = -L$(OUTLIB_DIR) -l$(PROJECT)
+ifndef STATIC_LINK
+  COMPILE.c += -fPIC
+  libflags += -Wl,-rpath,$(abspath $(OUTLIB_DIR)) -Wl,-rpath,'$$ORIGIN/../lib'
+endif
 BUILD_bin.c = $(CC) $(COMPILE.flags.c) -o $@ $< $(libflags) $(LINK.flags)
 BUILD_test_bin.c = $(BUILD_bin.c) -UNDEBUG
 
