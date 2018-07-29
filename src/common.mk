@@ -17,7 +17,7 @@ LINK.flags = $(LDFLAGS) $(LDLIBS) $(TARGET_ARCH)
 LINK.o = $(LD) $(LINK.flags)
 
 ifdef STATIC_LINK
-  TARGET_LIB=$(OBJ_DIR)/lib$(PROJECT).a
+  TARGET_LIB=$(OUTLIB_DIR)/lib$(PROJECT).a
 else
   ifeq ($(shell uname -s),Darwin)
   TARGET_LIB = $(OUTLIB_DIR)/lib$(PROJECT).dylib
