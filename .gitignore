@@ -6,6 +6,8 @@ output/
 bin/
 include/
 lib/
+!src/bin/
+valgrind.out
 third-party/
 log/
 *.o

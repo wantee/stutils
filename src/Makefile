@@ -49,6 +49,8 @@ SRCS = st_dict.c \
        st_varint.c \
        st_block_pool.c
 
+BINS = bin/show-st-opt
+
 TESTS = tests/st-utils-test \
         tests/st-conf-test \
         tests/st-int-test \

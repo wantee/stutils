@@ -88,6 +88,12 @@ st_conf_section_t* st_conf_new_sec(st_conf_t *conf, const char *name);
 
 st_conf_section_t* st_conf_def_sec(st_conf_t *conf);
 
+void st_conf_sort_secs(st_conf_t *conf);
+
+int st_conf_strcmp(const char *s1, const char *s2);
+
+int st_conf_merge(st_conf_t *dst, st_conf_t *src);
+
 int st_resolve_param(const char *line, st_conf_t *pconf,
         st_conf_section_t** sec);
 
@@ -389,6 +395,7 @@ int st_conf_get_bool_def(st_conf_t *pconf, const char *sec_name,
 
 #ifdef __cplusplus
 }
+
 #endif
 
 #endif

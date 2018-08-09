@@ -103,6 +103,22 @@ int st_opt_add_help_plugin(st_opt_t *opt, const char *sec_name,
 
 void st_opt_show_usage(st_opt_t *opt, FILE *fp, bool show_format);
 
+/*
+ * Pring usage into stderr
+ *
+ * @param[in] module_name the program name. normally is argv[0].
+ * @param[in] header header message.
+ * @param[in] usage usage message.
+ * @param[in] eg example usage.
+ * @param[in] opt st_opt_t structure.
+ * @param[in] trailer trailer message.
+ */
+void st_show_usage(const char *module_name, const char *header,
+        const char *usage, const char *eg,
+        st_opt_t *opt, const char *trailer);
+
+int st_opt_print_cmd(st_opt_t *opt, FILE *fp);
+
 int st_opt_get_double(st_opt_t *popt, const char *sec_name,
         const char *key, double *value, double default_value,
         const char *desc);

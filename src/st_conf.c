@@ -36,7 +36,7 @@
 #define SEC_NUM     10
 #define PARAM_NUM    100
 
-static int st_conf_strcmp(const char *s1, const char *s2)
+int st_conf_strcmp(const char *s1, const char *s2)
 {
     int c1, c2;
 
@@ -162,17 +162,22 @@ int st_conf_add_param(st_conf_section_t *sec, const char *key,
     return 0;
 }
 
-st_conf_section_t* st_conf_def_sec(st_conf_t *conf)
+st_conf_section_t* st_conf_get_sec(st_conf_t *conf, const char* sec_name)
 {
     int s;
 
     for (s = 0; s < conf->sec_num; s++) {
-        if (st_conf_strcmp(conf->secs[s].name, DEF_SEC_NAME) == 0) {
+        if (st_conf_strcmp(conf->secs[s].name, sec_name) == 0) {
             return conf->secs + s;
         }
     }
 
     return NULL;
+}
+
+st_conf_section_t* st_conf_def_sec(st_conf_t *conf)
+{
+    return st_conf_get_sec(conf, DEF_SEC_NAME);
 }
 
 st_conf_t* st_conf_create()
@@ -990,4 +995,63 @@ void st_conf_help(FILE *fp)
     fprintf(fp, "[SEC2/SUB1/SUB2/.../SUBn:%s/subsec2.conf] // load section/subsection config from the other config file\n\n", ORIGIN_PATH_VAR);
     fprintf(fp, "// Note: all whitespace will not be stripped\n");
     fprintf(fp, "--------------------\n");
+}
+
+
+int st_conf_merge(st_conf_t *dst, st_conf_t *src)
+{
+    st_conf_section_t *sec;
+    int s, p;
+
+    for (s = 0; s < src->sec_num; s++) {
+        sec = st_conf_get_sec(dst, src->secs[s].name);
+        if (sec == NULL) {
+            sec = st_conf_new_sec(dst, src->secs[s].name);
+            if (sec == NULL) {
+                ST_ERROR("Failed to st_conf_new_sec[%s].", src->secs[s].name);
+                return -1;
+            }
+
+        }
+
+        for (p = 0; p < src->secs[s].param_num; p++) {
+            if (st_conf_add_param(sec, src->secs[s].param[p].key,
+                        src->secs[s].param[p].value) < 0) {
+                ST_ERROR("Failed to st_conf_add_param.");
+                return -1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+static int st_conf_sec_comp(const void *a, const void *b)
+{
+    st_conf_section_t *sec1;
+    st_conf_section_t *sec2;
+    int ret;
+
+    sec1 = (st_conf_section_t *)a;
+    sec2 = (st_conf_section_t *)b;
+
+    ret = st_conf_strcmp(sec1->name, sec2->name);
+    if (ret == 0) {
+        return 0;
+    }
+
+    // put DEF_SEC_NAME and --config in the front
+    if (st_conf_strcmp(sec1->name, DEF_SEC_NAME) == 0) {
+        return -1;
+    }
+    if (st_conf_strcmp(sec2->name, DEF_SEC_NAME) == 0) {
+        return 1;
+    }
+
+    return ret;
+}
+
+void st_conf_sort_secs(st_conf_t *conf) {
+    qsort(conf->secs, conf->sec_num, sizeof(st_conf_section_t),
+            st_conf_sec_comp);
 }

@@ -276,7 +276,7 @@ static int st_opt_add_info(st_opt_t *opt, st_opt_type_t type,
     info = opt->infos + opt->info_num;
     info->type = type;
     if (sec_name == NULL || sec_name[0] == '\0'
-            || strcasecmp(info->sec_name, DEF_SEC_NAME) == 0) {
+            || st_conf_strcmp(info->sec_name, DEF_SEC_NAME) == 0) {
         info->sec_name[0] = '\0';
     } else {
         strncpy(info->sec_name, sec_name, MAX_ST_CONF_LEN);
@@ -353,7 +353,7 @@ int st_opt_add_help_plugin(st_opt_t *opt, const char *sec_name,
 
     plug = opt->help_plugs + opt->help_plugs_num;
     if (sec_name == NULL || sec_name[0] == '\0'
-            || strcasecmp(plug->sec_name, DEF_SEC_NAME) == 0) {
+            || st_conf_strcmp(plug->sec_name, DEF_SEC_NAME) == 0) {
         plug->sec_name[0] = '\0';
     } else {
         strncpy(plug->sec_name, sec_name, MAX_ST_CONF_LEN);
@@ -470,7 +470,7 @@ int st_opt_parse_one(st_opt_t *opt, int *argc, const char *argv[])
         return -1;
     }
     if (num_kv == 1) {
-        if (strcasecmp(key_value, "help") == 0) {
+        if (st_conf_strcmp(key_value, "help") == 0) {
             strcpy(key_value + MAX_LINE_LEN, "true");
         } else {
             ST_ERROR("Error Format(--key=value): [%s]", argv[arg]);
@@ -755,4 +755,86 @@ int st_opt_get_double(st_opt_t *popt, const char *sec_name,
             (void *)&default_value, desc);
 
     return ret;
+}
+
+void st_show_usage(const char *module_name, const char *header,
+        const char *usage, const char *eg,
+        st_opt_t *opt, const char *trailer)
+{
+    fprintf(stderr, "Usage: %s [options] %s\n", module_name, usage);
+    if (eg != NULL) {
+        fprintf(stderr, "e.g.: \n");
+        fprintf(stderr, "  %s %s\n", module_name, eg);
+    }
+    fprintf(stderr, "\n");
+    if (opt != NULL) {
+        fprintf(stderr, "Options: \n");
+        st_opt_show_usage(opt, stderr, true);
+    }
+    if (trailer != NULL) {
+        fprintf(stderr, "\n%s\n", trailer);
+    }
+}
+
+int st_opt_print_cmd(st_opt_t *opt, FILE *fp)
+{
+    char leading[MAX_ST_CONF_LEN];
+    st_conf_t *conf = NULL;
+    st_conf_section_t *sec;
+    int s, p;
+
+    ST_CHECK_PARAM(opt == NULL || fp == NULL, -1);
+
+    conf = st_conf_create();
+    if (conf == NULL) {
+        ST_ERROR("Failed to st_opt_create conf.");
+        goto ERR;
+    }
+
+    if (opt->file_conf != NULL) {
+        sec = st_conf_def_sec(opt->cmd_conf);
+        if (sec != NULL) {
+            for (p = 0; p < sec->param_num; p++) {
+                if (st_conf_strcmp(sec->param[p].key, "config") == 0) {
+                    fprintf(fp, "--config=%s\n", sec->param[p].value);
+                }
+            }
+        }
+        if (st_conf_merge(conf, opt->file_conf) < 0) {
+            ST_ERROR("Failed to st_conf_merge file_conf.");
+            return -1;
+        }
+    }
+
+    if (st_conf_merge(conf, opt->cmd_conf) < 0) {
+        ST_ERROR("Failed to st_conf_merge cmd_conf.");
+        return -1;
+    }
+
+    st_conf_sort_secs(conf);
+
+    for (s = 0; s < conf->sec_num; s++) {
+        sec = conf->secs + s;
+        if (st_conf_strcmp(sec->name, DEF_SEC_NAME) != 0) {
+            snprintf(leading, MAX_ST_CONF_LEN, "--%s.",
+                    st_opt_normalize_key(sec->name, true));
+        } else {
+            snprintf(leading, MAX_ST_CONF_LEN, "--");
+        }
+        for (p = 0; p < sec->param_num; p++) {
+            if (st_conf_strcmp(sec->name, DEF_SEC_NAME) == 0
+                    && st_conf_strcmp(sec->param[p].key, "config") == 0) {
+                continue;
+            }
+            fprintf(fp, "%s%s=%s\n", leading, st_opt_normalize_key(sec->param[p].key, true),
+                    sec->param[p].value);
+        }
+    }
+
+    safe_st_conf_destroy(conf);
+    return 0;
+
+ERR:
+    safe_st_conf_destroy(conf);
+    return -1;
 }

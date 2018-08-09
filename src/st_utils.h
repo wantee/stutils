@@ -86,6 +86,7 @@ typedef st_cmp_ret_t (*st_cmp_func_t) (const void *elem1, const void *elem2,
  */
 int st_insert(void *base, size_t cap, size_t sz, size_t *num, size_t *pos,
         void *elem, st_cmp_func_t cmp, void *arg);
+
 #ifdef __cplusplus
 }
 #endif
