@@ -77,17 +77,18 @@ int main(int argc, const char *argv[])
         goto ERR;
     }
 
-    printf("Command-line: %s\n", args);
+    printf("Command-line:\n");
+    printf("%s\n", args);
 
-    printf("Options:\n");
+    printf("\nOptions:\n");
     if (st_opt_print_cmd(g_cmd_opt, stdout) < 0) {
         fprintf(stderr, "Failed to st_opt_print_cmd.");
         goto ERR;
     }
 
-    printf("Positinal arguments:\n");
+    printf("\nPositinal arguments:\n");
     for (i = 1; i < argc; i++) {
-        printf("    %s\n", argv[i]);
+        printf("%s\n", argv[i]);
     }
 
     safe_st_opt_destroy(g_cmd_opt);
